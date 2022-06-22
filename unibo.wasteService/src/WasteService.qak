@@ -1,0 +1,301 @@
+System wasteservice
+
+mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+
+Request  dumpwaste      : dumpwaste( TYPE, LOAD )
+Reply    loadaccepted   : loadaccepted( TYPE, LOAD )
+Reply    loadrejected   : loadrejected( TYPE, LOAD )
+
+Request  hasNext        : hasNext( ARG )
+Reply    yesNext        : yesNext( ARG )
+Reply    noNext         : noNext(  ARG )
+
+Dispatch activate       : activate( TYPE )
+Dispatch stop           : stop( ARG )
+Dispatch resume         : resume( ARG )
+
+Event    currentweights : currentweights( GWEIGHT, PWEIGHT )
+
+Event    thrill         : turn( CMD )
+Event    sonardata      : distance( DIST )
+Event    ledstatus      : ledstatus( STATUS )
+Event 	 robotstatus    : robotstatus( STATUS )
+Event    move           : move( DIR )
+
+Request retrievePath    : retrievePath(START, GOAL)
+Reply   path 			: path(PATH)
+
+
+Context ctxWasteService ip [ host="localhost" port=8049 ]
+
+
+QActor led context ctxWasteService {
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	
+	Transition t0 whenEvent thrill -> handleThrill
+	
+	
+	State handleThrill {
+		printCurrentMessage
+		
+		onMsg( thrill : thrill( CMD )) {
+			if [# payloadArg(0).equals("On")#] {
+				println("Led on")
+			}else {
+				println("Led off")
+			}
+		}
+	}
+	
+	Goto s0
+}
+
+QActor wastetruck context ctxWasteService {
+	
+	[#
+		var Type       = "";
+		var Weight     = 0L;
+	#]
+	State s0 initial {
+		printCurrentMessage
+		
+		delay 5000
+		
+		[# val Load = kotlin.random.Random.nextLong(10,100)#]
+		request wasteservice -m dumpwaste : dumpwaste( glass, $Load )
+	}
+	
+	Transition t0 whenReply loadaccepted -> accepted
+				  whenReply	loadrejected -> rejected
+	
+	State accepted {
+		printCurrentMessage
+		onMsg (loadaccepted : loadaccepted( TYPE, LOAD ) ) {
+			[#
+				Type   = payloadArg(0);
+				Weight = payloadArg(1).toLong()
+			#]
+			println("wasteTruck | accepted load of $Type and Weight $Weight ")
+		}
+		
+	}
+	
+	Goto s0
+	
+	State rejected {
+		printCurrentMessage
+		onMsg ( loadrejected : loadrejected( TYPE, LOAD )) {
+			[#
+				Type   = payloadArg(0);
+				Weight = payloadArg(1).toLong();
+			#]
+			println("wasteTruck | rejected load of $Type and Weight $Weight ")
+		}
+	}
+	
+	Goto s0
+	
+	
+}
+
+QActor wasteservice context ctxWasteService {
+	
+	[#
+		var MAXG     	= 300L;
+		var MAXP     	= 300L;
+		var CurrentG 	= 0L;
+		var CurrentP 	= 0L;
+		var TrolleyFree = true;
+	#]
+	 
+	State s0 initial {
+		printCurrentMessage
+		println("waiting for trucks....")
+	}
+	
+	Transition t0 whenRequest dumpwaste -> requestDump
+				 
+				  
+	
+	State requestDump {
+		onMsg( dumpwaste : dumpwaste( TYPE, WEIGHT )) {
+			[#
+				var Type   = payloadArg(0);
+				var Weight = payloadArg(1).toLong();
+			#]
+			
+			if [# Type.equals("glass")#] {
+				if [# CurrentG + Weight <= MAXG #] {
+					replyTo dumpwaste with loadaccepted : loadaccepted( glass, $Weight )
+					
+					[#
+						CurrentG += Weight 
+						TrolleyFree = false
+					#]
+					emit currentweights : currentweights($CurrentG, $CurrentP)
+					
+					forward transportrolley -m activate : activate(glass)
+				}
+				else {
+					replyTo dumpwaste with loadrejected : loadrejected( glass, $Weight )
+				}
+				
+			} else {
+				if [# CurrentP + Weight <= MAXP #] {
+					replyTo dumpwaste with loadaccepted : loadaccepted( plastic, $Weight )
+					
+					[#
+						CurrentP += Weight 
+						TrolleyFree = false
+					#]
+					emit currentweights : currentweights($CurrentG, $CurrentP)
+					
+					forward transportrolley -m activate : activate(plastic)
+				}
+				else {
+					replyTo dumpwaste with loadrejected : loadrejected( glass, $Weight )
+				}
+			}
+		}
+		
+		
+	}
+	
+	Goto s0
+	
+}
+
+QActor transportrolley context ctxWasteService {
+	
+	[#
+		var CurPosition = "home";
+		var Container   = "";
+		var StoppedPos  = "";
+		var Status      = "working";
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+		println("Waiting activation....")
+	}
+	
+	Transition t0 whenMsg activate -> findpathtoindoor
+				
+				  
+	
+	State findpathtoindoor {
+		printCurrentMessage
+		
+		onMsg(activate:activate(TYPE)) {
+			[#
+				Container = payloadArg(0)
+			#]
+		}
+		
+		request pathfinder -m retrievePath : retrievePath($CurPosition, indoor)
+		
+		println("Asking for a path to INDOOR")		
+		
+	}
+	
+	Transition t1 whenReply path -> goindoor
+	
+	State goindoor {
+		printCurrentMessage
+		
+		onMsg( path : path(PATH)) {
+			[# val P = payloadArg(0)#]
+			
+			println("The path to go to INDOOR is $P")
+			
+			println("Going INDOOR")
+		}
+		
+		request pathfinder -m retrievePath : retrievePath(indoor, $Container)
+	}
+	
+	Transition t2 whenReply path -> gocontainer
+				     
+	
+	State gocontainer {
+		printCurrentMessage
+		
+		[#
+			CurPosition = Container;	
+		#]
+		
+		onMsg( path : path(PATH)) {
+			[# val PathToContainer = payloadArg(0)#]
+			
+			println("The path to go to $Container is $PathToContainer")
+			
+			println("Going $Container container")
+		}
+		
+		request wasteservice -m hasNext : hasNext(next)
+	}
+	
+	Goto findpathtohome
+				  
+	State findpathtohome {
+		printCurrentMessage
+		
+		request pathfinder -m retrievePath : retrievePath($CurPosition, home)
+		
+		println("Asking for a path to HOME")	
+		
+	}
+	
+	Transition t4 whenReply path -> gohome
+	
+	State gohome {
+		printCurrentMessage
+		
+		[#
+			CurPosition = "home";	
+		#]
+		
+		onMsg( path : path(PATH)) {
+			[# val PathToHome = payloadArg(0)#]
+			
+			println("The path to go to home is $PathToHome")
+			
+			println("Going HOME")
+		}
+	}
+	
+	Goto s0
+	
+	
+}
+
+QActor pathfinder context ctxWasteService {
+	State s0 initial {
+		printCurrentMessage
+		
+	}
+	
+	Transition t0  whenRequest retrievePath -> findpath
+	
+	State findpath {
+		printCurrentMessage
+		
+		onMsg( retrievePath : retrievePath(START, GOAL)) {
+			[#
+				val Start = payloadArg(0)
+				val Goal  = payloadArg(1)
+			#]
+			println("Searching a path from $Start to $Goal")
+			
+			replyTo retrievePath with path : path(www) 
+		}
+		
+	}
+	
+
+	Goto s0
+}
+

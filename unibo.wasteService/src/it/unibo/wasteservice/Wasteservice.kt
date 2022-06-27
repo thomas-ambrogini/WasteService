@@ -15,53 +15,79 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var MAXG     	= 300L;
-				var MAXP     	= 300L;
-				var CurrentG 	= 0L;
-				var CurrentP 	= 0L;
-				var TrolleyFree = true;
+				var CurrentPlasticWeight = 0L
+				var CurrentGlassWeight   = 0L
+				var OffsetPlastic        = 0L
+				var OffsetGlass          = 0L
+				val MAXP				 = 200L
+				val MAXG				 = 200L
+				
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						println("waiting for trucks....")
 					}
-					 transition(edgeName="t03",targetState="requestDump",cond=whenRequest("dumpwaste"))
+					 transition(edgeName="t00",targetState="handleTruck",cond=whenRequest("storeload"))
 				}	 
-				state("requestDump") { //this:State
+				state("handleTruck") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("dumpwaste(TYPE,LOAD)"), Term.createTerm("dumpwaste(TYPE,WEIGHT)"), 
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("storeload(TYPE,LOAD)"), Term.createTerm("storeload(TYPE,LOAD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
-												var Type   = payloadArg(0);
-												var Weight = payloadArg(1).toLong();
+												val Type   = payloadArg(0)
+												val Weight = payloadArg(1).toLong()	
 								if(  Type.equals("glass") 
-								 ){if(  CurrentG + Weight <= MAXG  
-								 ){answer("dumpwaste", "loadaccepted", "loadaccepted(glass,$Weight)"   )  
-								
-														CurrentG += Weight 
-														TrolleyFree = false
-								emit("currentweights", "currentweights($CurrentG,$CurrentP)" ) 
-								forward("activate", "activate(glass)" ,"transportrolley" ) 
+								 ){if(  CurrentGlassWeight + OffsetGlass + Weight <= MAXG  
+								 ){
+														OffsetGlass  += Weight
+								answer("storeload", "loadaccepted", "loadaccepted(glass,$Weight)"   )  
+								request("activate", "activate($Type,$Weight)" ,"transporttrolley" )  
 								}
 								else
-								 {answer("dumpwaste", "loadrejected", "loadrejected(glass,$Weight)"   )  
+								 {answer("storeload", "loadrejected", "loadrejected(glass,$Weight)"   )  
 								 }
 								}
 								else
-								 {if(  CurrentP + Weight <= MAXP  
-								  ){answer("dumpwaste", "loadaccepted", "loadaccepted(plastic,$Weight)"   )  
-								 
-								 						CurrentP += Weight 
-								 						TrolleyFree = false
-								 emit("currentweights", "currentweights($CurrentG,$CurrentP)" ) 
-								 forward("activate", "activate(plastic)" ,"transportrolley" ) 
+								 {if(  CurrentPlasticWeight + OffsetPlastic + Weight <= MAXP  
+								  ){
+								 						OffsetPlastic  += Weight	
+								 answer("storeload", "loadaccepted", "loadaccepted(plastic,$Weight)"   )  
+								 request("activate", "activate($Type,$Weight)" ,"transporttrolley" )  
 								 }
 								 else
-								  {answer("dumpwaste", "loadrejected", "loadrejected(glass,$Weight)"   )  
+								  {answer("storeload", "loadrejected", "loadrejected(glass,$Weight)"   )  
 								  }
 								 }
 						}
+					}
+					 transition(edgeName="t11",targetState="handlepickup",cond=whenReply("pickupDone"))
+				}	 
+				state("handlepickup") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("leaveindoor", "leaveindoor(ok)" ,"wastetruck" ) 
+					}
+					 transition(edgeName="t22",targetState="handledepositdone",cond=whenEvent("loaddeposit"))
+				}	 
+				state("handledepositdone") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("loaddeposit(TYPE,LOAD)"), Term.createTerm("loaddeposit(TYPE,LOAD)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												val Type = payloadArg(0)
+												val Load = payloadArg(1).toLong()
+												
+												if(Type.equals("glass")) {
+													CurrentGlassWeight   += Load
+													OffsetGlass          -= Load
+												}else {
+													CurrentPlasticWeight += Load
+													OffsetPlastic        -= Load
+												}
+						}
+						println("Weight updated")
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 

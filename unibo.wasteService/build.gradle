@@ -1,3 +1,9 @@
+/*
+================================================================================
+build.gradle
+GENERATED ONLY ONCE
+================================================================================
+*/
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
@@ -100,7 +106,7 @@ eclipse {
 
 application {
     // Define the main class for the application.
-    mainClass = 'it.unibo.ctxWasteService.MainCtxWasteServiceKt'
+    mainClass = 'it.unibo.ctxWasteServicePrototipo1.MainCtxWasteServicePrototipo1Kt'
 }
 
  jar {
@@ -110,3 +116,4 @@ application {
         attributes 'Main-Class': "$mainClassName"
     }
 }
+

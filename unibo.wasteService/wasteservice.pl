@@ -2,9 +2,7 @@
 % wasteservice description   
 %====================================================================================
 mqttBroker("broker.hivemq.com", "1883", "unibo/ambrogini/wasteService").
-context(ctxwasteservice, "localhost",  "TCP", "8049").
- qactor( led, ctxwasteservice, "it.unibo.led.Led").
-  qactor( wastetruck, ctxwasteservice, "it.unibo.wastetruck.Wastetruck").
-  qactor( wasteservice, ctxwasteservice, "it.unibo.wasteservice.Wasteservice").
-  qactor( transportrolley, ctxwasteservice, "it.unibo.transportrolley.Transportrolley").
-  qactor( pathfinder, ctxwasteservice, "it.unibo.pathfinder.Pathfinder").
+context(ctxwasteserviceprototipo1, "localhost",  "TCP", "8049").
+ qactor( wasteservice, ctxwasteserviceprototipo1, "it.unibo.wasteservice.Wasteservice").
+  qactor( transporttrolley, ctxwasteserviceprototipo1, "it.unibo.transporttrolley.Transporttrolley").
+  qactor( wastetruck, ctxwasteserviceprototipo1, "it.unibo.wastetruck.Wastetruck").

@@ -461,6 +461,12 @@
 	 	Infine, per quanto riguarda la problematica Nuovo Deposito si adotta la soluzione #1, dove le 
 	 	richieste vengono messe in code al trolley appena vengono accettate dal WasteService.
 	 	
+	 	<h4> Note </h4>
+	 	Si considera l'utilizzo di un evento per risolvere il problema del fine deposito, poichè anche 
+	 	nel caso in cui l'evento venga perso per problemi di comunicazione, dato che tale evento viene
+	 	utilizzato esclusivamente per l'aggiornamento del peso corrente dei Container, anche in caso
+	 	di errore, esso viene gestito in maniera semplice dal WasteService.
+	 	
 	 	<h4> Architettura Finale </h4>
 	 	<img src="img/COREFINALEImage.jpg" alt="img"> <br>
 	 	

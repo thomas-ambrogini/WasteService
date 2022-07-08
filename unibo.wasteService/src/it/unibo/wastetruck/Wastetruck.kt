@@ -27,7 +27,8 @@ class Wastetruck ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						println("$name in ${currentState.stateName} | $currentMsg")
 						 
 									val Load    = kotlin.random.Random.nextLong(10,100)
-									val RandInt = kotlin.random.Random.nextInt(0,1)
+									val RandInt = kotlin.random.Random.nextInt(0,2)
+									println(RandInt)
 									var Type    = ""
 									
 									if(RandInt == 0) 
@@ -36,8 +37,8 @@ class Wastetruck ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 										Type = "plastic"
 						request("storeload", "storeload($Type,$Load)" ,"wasteservice" )  
 					}
-					 transition(edgeName="t16",targetState="accepted",cond=whenReply("loadaccepted"))
-					transition(edgeName="t17",targetState="rejected",cond=whenReply("loadrejected"))
+					 transition(edgeName="t13",targetState="accepted",cond=whenReply("loadaccepted"))
+					transition(edgeName="t14",targetState="rejected",cond=whenReply("loadrejected"))
 				}	 
 				state("rejected") { //this:State
 					action { //it:State
@@ -51,7 +52,7 @@ class Wastetruck ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("Request accepted")
 					}
-					 transition(edgeName="t28",targetState="handleleave",cond=whenDispatch("leaveindoor"))
+					 transition(edgeName="t25",targetState="handleleave",cond=whenDispatch("leaveindoor"))
 				}	 
 				state("handleleave") { //this:State
 					action { //it:State

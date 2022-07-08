@@ -228,7 +228,15 @@
 	Quando il trolley conclude il requisito FineDeposito e quindi deposita il carico nel container appropriato si ha la necessità di
 	trovare un modo per poter verificare se sono arrivati nuovi WasteTruck nel frattempo.
 	
+	<h3> Problematica Posizioni Container</h3>
+	Quale componente deve essere a conoscenza delle posizioni dei container.
 	
+	<h3> Problematica Percorso trolley </h3>
+	Come fa il trolley a sapere il percorso da seguire partendo da una posizione iniziale per arrivare all'obiettivo.
+	
+	<h3> Problematica Peso Container </h3>
+	Quale componente possiede l'informazione del peso attuale dei container.
+		
 	<h3> Modello eseguibile analisi dei requisiti </h3>
 	
 		<a href="../src/WasteServiceAnalisiRequisitiAmbrogini.qak" >Modello Analisi dei requisiti</a>
@@ -443,6 +451,68 @@
 	 	un messaggio in più.
 	 	
 	 	
+	 	<h3> Problematica Posizioni Container</h3>
+	 	
+	 	<h4> Soluzione #1 </h4>
+	 	Può essere il WasteService che conosce la posizione dei container e comunica al trolley (quando deve attivarsi) 
+	 	in quali coordinate andare.
+	 	
+	 	<h4> Soluzione #2 </h4>
+	 	Può essere il trolley stesso ad essere a conoscenza della posizione dei container. Il problema di questa soluzione
+	    è il fatto che si va a cablare la posizione dei container direttamente all'interno del trolley e si perde 
+	    la possibilità di realizzare il trolley come un semplice attuatore.
+	    
+	    <h4> Soluzione #3 </h4>
+		Può essere un terzo componente ad avere questa informazione. Nel caso l'informazione sia in un terzo componente
+		si può avere il wasteService che chiede la posizione al componente aggiuntivo e la invia al trolley oppure può 
+		essere il trolley, che una volta ricevuta dal wasteService la posizione da raggiungere, chieda al componente 
+		le coordinate dell'obiettivo.
+		
+		<br>
+		Vantaggi: 
+		<ol class="arabic simple">
+			<li>
+				Scalabilità: nel caso si voglia aggiungere una nuova posizione o cambiare le coordinate di una esistente
+				basta semplicemente modificare il nuovo componente senza che vada ad influire in nessun modo con il resto
+				dei componenti
+			</li>
+			<li>
+				Nel caso della soluzione dove si ha il WasteService che chiede le coordinate al componente aggiuntivo si 
+				continua a vedere il trolley come un attuatore.
+			</li>
+			
+		</ol>
+		
+		<h3> Problematica percorso trolley </h3>
+		Per non cablare l'informazione del percorso direttamente all'interno del trolley è possibile: 
+		<h4> Soluzione #1 </h4>
+		Fare in modo che il wasteService conosca il percorso da seguire e invii il percorso tramite messaggio al trolley.
+		In questo caso non sarebbe nemmeno necessario inviare le coordinate dei container al trolley.
+		
+		<h4> Soluzione #2 </h4>
+		Utilizzare un componente esterno che conosca (e possibilmente possa trovare) il percorso. In questo caso, il 
+		wasteService potrebbe chiedere il percorso ed inviarlo direttamente al trolley continuando a pensarlo come un attuatore
+		oppure potrebbe essere il trolley a chiedere quale sia il percorso al terzo componente.
+		<br>
+		Il vantaggio che si ottiene facendo comunicare il wasteService con il componento aggiuntivo è quello citato in 
+		precedenza, vale a dire, la possibilità di disaccoppiare il trolley dalla logica di business. Lo svantaggio che
+		si ha è nel caso in cui ci siano lunghi percorsi da comunicare al trolley, dovendo inviare messaggi di grandi
+		dimensioni.
+		
+		<h4> Note</h4>
+		Dato che all'interno di un magazzino sembra improbabile avere percorsi di grandi dimensioni si consiglia la 
+		soluzione dove il trolley viene considerato come un attuatore.
+		
+		<h3> Problematica peso container</h3>
+		<h4> Soluzione #1 </h4>
+		Può essere il wasteService stesso a tenere il peso dei container. 
+		
+		<h4> Soluzione #2 </h4>  
+		Può essere un componente esterno (container) che tiene traccia del peso del container. Inoltre, si può avere
+		un componente per ogni container nel sistema oppure un unico componente che tiene traccia del peso di tutti i container.
+		
+		
+			 	
 	 	<h3> Soluzione proposta </h3>
 	 	L'idea principale di questa soluzione è quella di rendere il trolley un attuatore, senza che
 	 	abbia conoscenza degli altri componenti.
@@ -504,7 +574,7 @@
 	-->
 		      	
 	<br/><br/> 	
-	</div>  
+
 	
 	<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;color:white">
 	By Thomas Ambrogini email: thomas.ambrogini@studio.unibo.it  

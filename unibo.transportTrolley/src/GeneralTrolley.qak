@@ -1,0 +1,133 @@
+System transporttrolley
+
+mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+
+Request  activate       : activate( TYPE, LOAD ) //activate( PATHINDOOR, PATHCONTAINER, LOAD), activate( XPOS, YPOS, LOAD)
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Dispatch gocontainer        : gocontainer( PATH )
+//Reply    endDeposit       : endDeposit( TYPE)
+
+Event    loaddeposit        : loaddeposit( TYPE, LOAD )
+
+Request  findPath           : findPath( X_DESTINATION, Y_DESTINATION )
+Reply    path               : path( PATH )
+
+Request  dopath             : dopath( PATH  )
+Reply 	 dopathdone     : dopathdone( ARG )
+Reply 	 dopathfail     : dopathfail( ARG )
+
+Dispatch prova          : prova( ARG )
+
+Context ctxbasicrobot 				  ip [ host="127.0.0.1" port=8020 ]  
+Context ctxTransportTrolleyPrototipo1 ip [ host="localhost" port=8051 ]
+
+ExternalQActor pathexec context ctxbasicrobot
+
+QActor transporttrolley context ctxTransportTrolleyPrototipo1 {
+
+	State s0 initial {
+		printCurrentMessage 
+	}
+	
+	Transition t0 whenRequest moveToDestination -> move
+	
+	State move {
+		printCurrentMessage
+		
+		onMsg( moveToDestination : info( X_DESTINATION, Y_DESTINATION )) {
+			request pathfinder -m findPath : findPath( $payloadArg(0), $payloadArg(1) )
+		}
+	}
+	
+	Transition t1 whenReply dopathdone -> destinationReached
+	
+	State destinationReached {
+		printCurrentMessage
+		replyTo moveToDestination with destinationReached : destinationReached(ok)
+	}
+	
+	Goto s0
+	
+}
+
+QActor pathfinder context ctxTransportTrolleyPrototipo1 { 
+
+	
+	State s0 initial {
+		printCurrentMessage
+		[# 
+			unibo.kotlin.planner22Util.initAI();
+			unibo.kotlin.planner22Util.loadRoomMap("mapRoomEmpty");
+			unibo.kotlin.planner22Util.showMap();
+			unibo.kotlin.planner22Util.showCurrentRobotState();
+		#]	
+	}
+	
+	Transition t0 whenRequest findPath -> findThePath
+	
+	State findThePath {
+		[#
+			var MovesToDo = ""	
+		#]
+		printCurrentMessage
+
+		onMsg( findPath : findPath( X_DESTINATION, Y_DESTINATION )) {
+			[#
+				val X_Destination = payloadArg(0)
+				val Y_Destination = payloadArg(1)
+				unibo.kotlin.planner22Util.planForGoal( X_Destination, Y_Destination )
+				MovesToDo = unibo.kotlin.planner22Util.getActions().joinToString("")
+				pathut.setPath(MovesToDo)
+				pathut.updateMap()
+			#] 
+		}
+
+		println(MovesToDo)
+		request pathexec -m dopath : dopath($MovesToDo)
+			
+	}
+	
+	Transition t1 	whenReply dopathdone -> pathDone
+					whenReply dopathfail -> pathFail
+					
+	
+	State pathDone {
+		printCurrentMessage
+		
+		replyTo findPath with dopathdone : dopathdone(ok)
+	}
+	
+	Transition t2 whenRequest findPath -> findThePath
+	
+	State pathFail {
+		printCurrentMessage
+		println("PATH FAILED")
+	}
+
+}
+
+
+/* 
+QActor prova context ctxTransportTrolleyPrototipo1 {
+	State s0 initial {
+		printCurrentMessage
+		
+		request transporttrolley -m activate : activate(glass, 10)
+		
+		
+	}
+	
+	Transition t0 whenReply pickupDone -> again
+	
+	State again {
+		printCurrentMessage
+		delay 10000
+		request transporttrolley -m activate : activate(plastic, 10)
+	}
+}
+
+*/

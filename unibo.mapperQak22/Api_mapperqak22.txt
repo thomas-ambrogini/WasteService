@@ -1,0 +1,2 @@
+{"actor":"basicrobot", "msgType":"request", "sender":"mapperqak22", "msgId":"step"}
+{"actor":"basicrobot", "msgType":"dispatch", "sender":"mapperqak22", "msgId":"cmd"}

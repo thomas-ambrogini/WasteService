@@ -2,16 +2,8 @@ package observers
 
 import org.eclipse.californium.core.CoapClient
 import org.eclipse.californium.core.CoapResponse
-import org.eclipse.californium.core.coap.MediaTypeRegistry
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.delay
-import it.unibo.kactor.MsgUtil
-import it.unibo.kactor.ApplMessage
-import java.util.Scanner
 import org.eclipse.californium.core.CoapHandler
-import it.unibo.kactor.ActorBasic
-import kotlinx.coroutines.launch 
- 
+
 object  basicrobotCoapObserver {
 
     private val client = CoapClient()
@@ -19,8 +11,6 @@ object  basicrobotCoapObserver {
 	private val ipaddr      = "localhost:8020"		//5683 default
 	private val context     = "ctxbasicrobot"
  	private val destactor   = "basicrobot"
- 
-
 
 
 	 fun activate(  ){ 

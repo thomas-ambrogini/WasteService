@@ -1,0 +1,5 @@
+{"actor":"transporttrolley_mover", "msgType":"dispatch", "curstate":"idle", "nextstate":"stopped", "msgId":"stop"}
+{"actor":"transporttrolley_mover", "msgType":"dispatch", "curstate":"findThePath", "nextstate":"savepath", "msgId":"stop"}
+{"actor":"transporttrolley_mover", "msgType":"dispatch", "curstate":"stopped", "nextstate":"handle_resume", "msgId":"resume"}
+{"actor":"transporttrolley_mover", "msgType":"dispatch", "curstate":"handle_resume", "nextstate":"stopped", "msgId":"stop"}
+{"actor":"storage_manager", "msgType":"dispatch", "curstate":"s0", "nextstate":"handleUpdate", "msgId":"updateWeights"}

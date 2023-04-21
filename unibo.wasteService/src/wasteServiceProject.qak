@@ -1,0 +1,543 @@
+System wasteservice
+
+//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+
+//Requisiti: ArrivoWasteTruck, Accettato e Respinto
+Request  storeload  	: storeload( TYPE, LOAD )
+Reply    loadaccepted   : loadaccepted( TYPE, LOAD )
+Reply    loadrejected   : loadrejected( TYPE, LOAD )
+
+Dispatch leaveindoor    : leaveindoor( ARG )
+
+Event    loaddeposit    : loaddeposit( TYPE, LOAD )
+
+Request  pickup         : pickup( ARG )
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  deposit        : deposit( ARG )
+Reply    depositDone    : depositDone( ARG )
+
+Request  getCord        : getCord( DESTINATION )
+Reply    cord           : cord( X_DESTINATION, Y_DESTINATION )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Request  moveToHome			: info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Request startDeposit  : startDeposit(_) 
+Reply   pickedUp      : pickedUp(_)
+
+
+
+//STORAGE MANAGER
+
+Request  storageAsk        : storageAsk(MAT)
+Reply 	 storageAmount     : storageAmount(MAT, QNT)
+
+Request  storeRequest      : storeRequest(MAT, QNT) 
+Reply    storeRequestReply : storeRequestReply(ANS)
+
+Dispatch updateWeights     : updateWeights(_)
+
+
+Request  pickup         : pickup( ARG )
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  deposit        : deposit( ARG )
+Reply    depositDone    : depositDone( ARG )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Dispatch gocontainer        : gocontainer( PATH )
+//Reply    endDeposit       : endDeposit( TYPE)
+
+Event    loaddeposit        : loaddeposit( TYPE, LOAD )
+
+Request  findPath           : findPath( X_DESTINATION, Y_DESTINATION )
+Reply    path               : path( PATH )
+
+Request  dopath             : dopath( PATH  )
+Reply 	 dopathdone     : dopathdone( ARG ) 
+Reply 	 dopathfail     : dopathfail( ARG )
+
+Dispatch blink   : blink(_)
+Dispatch turnon  : turnon(_)
+Dispatch turnoff : turnoff(_)
+
+//SONAR
+Event distance : distance(DIST)
+Dispatch stop   : stop(_)
+Dispatch resume : resume(_)
+Dispatch stopPath : stopPath(_)
+Dispatch resumePath: resumePath(_)
+
+Event    sonar           : distance( V )   //emitted by sonarSimulator or sonardatasource	
+Event    sonardata       : distance( V )   //for the application level
+
+
+Event alarm : alarm(STOP)
+
+
+Dispatch coapUpdate : coapUpdate(RESOURCE, VALUE)
+
+Context ctx_basicrobot 				  ip [ host="robot" port=8020 ]  
+Context ctx_rasp    				  ip [ host="rasp" port=8056 ]
+Context ctx_wasteservice			  ip [ host="localhost" port=8049 ]
+
+
+ExternalQActor pathexec context ctx_basicrobot
+ExternalQActor led  	context ctx_rasp
+
+QActor transporttrolley context ctx_wasteservice {
+	
+	State s0 initial {
+		printCurrentMessage	
+	}
+	
+	Transition t0 whenRequest moveToDestination -> move
+	
+	State move {
+		printCurrentMessage
+		updateResource [# "work" #]
+		
+		onMsg( moveToDestination : info( X_DESTINATION, Y_DESTINATION )) {
+			
+			request transporttrolley_mover -m findPath : findPath( $payloadArg(0), $payloadArg(1) )
+		}
+	}
+	
+	Transition t1 	whenReply dopathdone -> destinationReached
+	
+	State destinationReached {
+		printCurrentMessage
+		replyTo moveToDestination with destinationReached : destinationReached(ok)
+	}
+	
+	Transition t2 whenRequest pickup -> handle_pickup
+				  whenRequest deposit -> handle_deposit
+				  whenRequest moveToDestination -> move
+	
+	
+	State handle_pickup {
+		printCurrentMessage
+		delay 5000
+		replyTo pickup with pickupDone : pickupDone(true)
+	}
+	
+	Transition t3 whenRequest moveToDestination -> move
+	
+	
+	State handle_deposit {
+		printCurrentMessage
+		delay 5000
+		replyTo deposit with depositDone : depositDone(true)
+	}
+	
+	Transition t4 	whenRequest moveToDestination -> move
+
+}
+
+
+QActor alarmemitter context ctx_wasteservice {	
+	[# 
+		var DLIMIT = 50
+		var stopped = "False"
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	Transition t0 whenEvent sonardata -> handle_sonardata
+	
+	State handle_sonardata {
+		printCurrentMessage
+		
+		onMsg ( sonardata : distance (DIST) ) {
+			[# val dLimit = DLIMIT #]
+			[# val dist = payloadArg(0).toFloat() #]
+
+			if [# dist <= dLimit && stopped.equals("False")#] {
+				println("STOP")
+				[# stopped = "True" #]
+//				forward transporttrolley_mover -m stop : stop(STOP)
+			}
+			if [# dist > dLimit && stopped.equals("True") #] {
+				println("RESUME")
+				[# stopped = "False" #]
+//				forward transporttrolley_mover -m resume : resume(RESUME)
+			}
+		}
+	}
+	
+	Goto s0
+	
+}
+
+
+
+QActor transporttrolley_mover context ctx_wasteservice { 
+	[#
+		var RemainingPath = ""
+	#] 
+	
+	State s0 initial {
+		
+		printCurrentMessage
+		[# 
+			unibo.kotlin.planner22Util.initAI();
+			unibo.kotlin.planner22Util.loadRoomMap("mapRoomEmpty");
+			unibo.kotlin.planner22Util.showMap();
+			unibo.kotlin.planner22Util.showCurrentRobotState();
+		#]	
+	}
+	
+	Goto idle
+	
+	State idle {
+		printCurrentMessage
+		updateResource [# "trolleyState(idle)" #]
+		
+	}
+	
+	Transition t0 	whenMsg     stop     -> stopped
+					whenRequest findPath -> findThePath
+	
+	State findThePath {
+		updateResource [# "trolleyState(work)" #]
+		[#
+			var MovesToDo = ""	
+		#]
+		printCurrentMessage
+
+		onMsg( findPath : findPath( X_DESTINATION, Y_DESTINATION )) {
+			[#
+				val X_Destination = payloadArg(0)
+				val Y_Destination = payloadArg(1)
+				unibo.kotlin.planner22Util.planForGoal( X_Destination, Y_Destination )
+				MovesToDo = unibo.kotlin.planner22Util.getActions().joinToString("")
+				pathut.setPath(MovesToDo)
+				pathut.updateMap()
+			#] 
+		}
+
+		println(MovesToDo)
+		request pathexec -m dopath : dopath($MovesToDo)
+			
+	}
+	
+	Transition t1 	whenMsg   stop       -> savepath
+					whenReply dopathdone -> pathDone
+					whenReply dopathfail -> handle_resume
+					
+	
+	State pathDone {
+		printCurrentMessage
+		
+		replyTo findPath with dopathdone : dopathdone(ok)
+	}
+	
+//	Transition t2 	whenMsg     stop     -> stopped
+//					whenRequest findPath -> findThePath
+
+	Goto idle
+	
+	
+	State savepath {
+		printCurrentMessage
+		onMsg(dopathfail: dopathfail(PATH)){
+			[#
+				RemainingPath = payloadArg(0)
+			#]	
+		}
+		println("TROLLEY | SAVE PATH: $RemainingPath")
+	}
+	
+	Goto stopped
+					
+	State stopped {
+		printCurrentMessage
+		println("TROLLEY | STOPPED")
+		updateResource [# "trolleyState(stopped)" #]
+	}
+	
+	Transition t7 whenMsg resume -> handle_resume
+	
+	State handle_resume {
+		printCurrentMessage
+		updateResource [# "trolleyState(work)" #]
+		
+		onMsg(resume : resume(STATE)){
+			
+			request pathexec -m dopath : dopath($RemainingPath) 
+			
+			[# RemainingPath = "" #]
+		}
+
+		
+		onMsg (dopathfail   : dopathfail( ARG )) {
+			[#
+				var RemainingPath = payloadArg(0)
+			#]
+			if [# RemainingPath.length == 1 || RemainingPath.length == 0#]{
+				[# RemainingPath = "" #]
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+			else{
+				//mancano più step, quindi procedo
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+		}
+
+	}
+	
+	Transition t2 whenMsg stop -> stopped
+				  whenReply dopathdone -> pathDone
+				  whenReply dopathfail -> handle_resume
+
+
+}
+
+
+
+
+QActor storage_manager context ctx_wasteservice {
+	[#
+		val Utility = utility.storage_manager.StorageManagerUtility()	
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	
+	Transition t0 whenRequest storeRequest  -> handleRequest
+				  whenRequest storageAsk    -> handleAsk
+				  whenMsg     updateWeights -> handleUpdate
+	
+	State handleRequest {
+		printCurrentMessage
+		
+		onMsg (storeRequest : storeRequest(MAT, QNT)) {
+			if [# Utility.checkDeposit(payloadArg(0), payloadArg(1).toDouble()) #] {
+				replyTo storeRequest with storeRequestReply : storeRequestReply(accepted)
+			}
+			else {
+				replyTo storeRequest with storeRequestReply : storeRequestReply(rejected)
+			}
+		}
+	}
+	
+	Goto s0
+	
+	State handleAsk {
+		printCurrentMessage
+		onMsg (storageAsk : storageAsk(MAT) ) {
+			[# var SpaceLeft = Utility.getWeight(payloadArg(0)) #]
+			replyTo storageAsk with storageAmount : storageAt($payloadArg(0), $SpaceLeft)
+		}
+	}
+	
+	Goto s0
+	
+	State handleUpdate {
+		printCurrentMessage
+		
+		[# 
+			Utility.deposit()
+			val CurrentGlass = Utility.getWeight("Glass")
+			val CurrentPlastic = Utility.getWeight("Plastic")
+
+		#]
+		
+		updateResource [# "glass($CurrentGlass), plastic($CurrentPlastic)" #]
+		
+	}
+	
+	Goto s0
+	
+}
+
+
+QActor wasteservice context ctx_wasteservice {
+	[#
+		var Type                 = ""
+		var Accepted             = "False"
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+		updateResource [# "trolleyPosition(home)" #]
+	}
+	
+	Transition t0 whenRequest storeload -> handleTruck
+	
+	State handleTruck {
+		printCurrentMessage
+		
+		onMsg( storeload : storeload( TYPE, LOAD ) ) {
+			[#
+				Type   = payloadArg(0)
+				val Weight = payloadArg(1).toLong()	
+			#]
+			
+			request storage_manager -m storeRequest : storeRequest($Type, $Weight)
+		}
+		
+	}
+	
+	Transition t1 whenReply storeRequestReply -> handleStorageReply
+	
+	State handleStorageReply {
+		printCurrentMessage
+		
+		onMsg ( storeRequestReply : storeRequestReply(ANS) ) {
+			if [# payloadArg(0).equals("accepted") #] {
+				[# Accepted = "True"#]
+				replyTo storeload with loadaccepted : loadaccepted( _, _ )
+			} else {
+				[# Accepted = "False"#]
+				replyTo storeload with loadrejected : loadrejected( _, _ ) 
+			}
+		}
+	}
+	
+	Goto moveTrolleyIndoor if [# Accepted.equals("True") #] else s0
+	
+	State moveTrolleyIndoor {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX("indoor")
+			val Y_Destination = positionUt.getCordY("indoor")
+		#]
+		
+		
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+	}
+	
+	Transition t2 whenReply destinationReached -> handlepickup
+	
+	State handlepickup {
+		printCurrentMessage
+		updateResource [# "trolleyPosition(indoor)" #]
+	
+//		forward wastetruck -m leaveindoor : leaveindoor(ok)
+		request transporttrolley -m pickup : pickup(true)
+	}
+	
+	Transition t11 whenReply pickupDone -> handle_pickupDone
+	
+	State handle_pickupDone {
+		printCurrentMessage
+		
+	}
+	
+	Goto  moveTrolleyContainer
+	
+	State moveTrolleyContainer {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX(Type)
+			val Y_Destination = positionUt.getCordY(Type)
+		#]
+		
+			
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+		
+		
+	}
+	
+	Transition t4 whenReply destinationReached -> handleDeposit
+	
+	State handleDeposit {
+		printCurrentMessage
+		updateResource [# "trolleyPosition($Type)" #]
+		
+		request transporttrolley -m deposit : deposit(true)
+		
+	}
+	
+	Transition t11 whenReply depositDone -> handle_depositDone
+	
+	State handle_depositDone {
+		printCurrentMessage
+		forward storage_manager -m updateWeights : updateWeights(_)
+	}
+	
+
+	Transition t5 	whenTime 10 -> moveTrolleyHome
+					whenRequest storeload -> handleTruck
+					
+
+					
+	State moveTrolleyHome {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX("home")
+			val Y_Destination = positionUt.getCordY("home")
+		#]
+		
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+	}
+	
+	Transition t12 whenReply destinationReached -> s0
+						
+	
+}
+ 
+
+//QActor wastetruck context ctx_wasteservice {
+//	
+//	
+//	State s0 initial {
+//		printCurrentMessage
+//		
+//		delay 5000
+//	}
+//	
+//	Goto requestdischarge
+//	
+//	State requestdischarge {
+//		printCurrentMessage
+//		
+//		[# 
+//			val Load    = kotlin.random.Random.nextLong(10,100)
+//			val RandInt = kotlin.random.Random.nextInt(0,2)
+//			println(RandInt)
+//			var Type    = ""
+//			
+//			if(RandInt == 0) 
+//				Type = "glass"
+//			else
+//				Type = "plastic"
+//		#]
+//		request wasteservice -m storeload : storeload( $Type, $Load )
+//		
+//	}
+//	
+//	Transition t1 whenReply loadaccepted -> accepted
+//				  whenReply loadrejected -> rejected
+//	 
+//	State rejected {
+//		printCurrentMessage
+//		println("Request rejected")
+//	}
+//	
+//	Goto s0
+//	
+//	State accepted {
+//		printCurrentMessage
+//		println("Request accepted")
+//	}
+//	
+//	Transition t2 whenMsg leaveindoor -> handleleave
+//	
+//	State handleleave {
+//		printCurrentMessage
+//		println("Leaving indoor")
+//	}
+//	
+////	Goto s0
+//}

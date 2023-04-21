@@ -36,10 +36,6 @@ object pathut{
 			.replace(",","")
 			.replace("[","")
 			.replace("]","")
-			.replace("(","")
-			.replace(")","")
-		
-		println(curPath)
 	}
 
 	fun setPathFromRequest(msg: IApplMessage)  {

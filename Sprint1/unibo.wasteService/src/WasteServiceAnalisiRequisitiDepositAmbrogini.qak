@@ -1,0 +1,44 @@
+System wasteservice
+
+//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+
+
+Context ctxDepositRequirementAnalysis ip [ host="localhost" port=8051 ]
+ 
+ 
+QActor transporttrolley context ctxDepositRequirementAnalysis {
+	
+	State home initial {
+		printCurrentMessage
+		println("Trolley | HOME")
+		updateResource [# "position(home)" #]
+	}
+	
+	State goingIndoor {
+		printCurrentMessage
+		println("Trolley | Going INDOOR")
+		delay 1000
+	}
+	
+	State pickup {
+		printCurrentMessage
+		updateResource [# "position(indoor)" #]
+		println("Trolley | pickup material")
+		delay 250
+	}
+	
+	State goingContainer {
+		printCurrentMessage
+		println("Trolley | Going container")
+		delay 1000
+	}
+	
+	State deposit {
+		printCurrentMessage
+		updateResource [# "position(container)" #]
+		println("Trolley | deposit done")
+		delay 250
+	}
+	
+}
+ 

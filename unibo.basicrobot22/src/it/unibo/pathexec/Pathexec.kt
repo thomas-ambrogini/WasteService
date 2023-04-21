@@ -14,35 +14,51 @@ class Pathexec ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		 var CurMoveTodo = ""    //Upcase, since var to be used in guards
-		   var StepTime    = "345"
+		   var StepTime    = "300"
+		   var PathTodo    = ""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						  CurMoveTodo = "" 
-									StepTime = unibo.robot.robotSupport.readStepTime()
+									StepTime = unibo.robot.robotSupport.readStepTime() //stepTimeConfig.json
+						updateResourceRep( "pathexecsteptime($StepTime)"  
+						)
 						println("pathexec ready. StepTime=$StepTime")
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t09",targetState="doThePath",cond=whenRequest("dopath"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t06",targetState="doThePath",cond=whenRequest("dopath"))
 				}	 
 				state("doThePath") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("dopath(PATH)"), Term.createTerm("dopath(PATH)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												val prova = payloadArg(0)
-												println(prova)	
-								pathut.setPath( payloadArg(0)  )
+								 PathTodo = payloadArg(0)  
+								updateResourceRep( "pathexecdopath($PathTodo)"  
+								)
+								pathut.setPath( PathTodo  )
 						}
 						println("pathexec pathTodo = ${pathut.getPathTodo()}")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="nextMove", cond=doswitch() )
 				}	 
 				state("nextMove") { //this:State
 					action { //it:State
 						 CurMoveTodo = pathut.nextMove()  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="endWorkOk", cond=doswitchGuarded({ CurMoveTodo.length == 0  
 					}) )
 					transition( edgeName="goto",targetState="doMove", cond=doswitchGuarded({! ( CurMoveTodo.length == 0  
@@ -50,7 +66,11 @@ class Pathexec ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 				}	 
 				state("doMove") { //this:State
 					action { //it:State
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="doMoveW", cond=doswitchGuarded({ CurMoveTodo == "w"  
 					}) )
 					transition( edgeName="goto",targetState="doMoveTurn", cond=doswitchGuarded({! ( CurMoveTodo == "w"  
@@ -58,34 +78,58 @@ class Pathexec ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 				}	 
 				state("doMoveTurn") { //this:State
 					action { //it:State
+						updateResourceRep( "pathexecdoturn($CurMoveTodo)"  
+						)
 						forward("cmd", "cmd($CurMoveTodo)" ,"basicrobot" ) 
-						stateTimer = TimerActor("timer_doMoveTurn", 
-							scope, context!!, "local_tout_pathexec_doMoveTurn", 300.toLong() )
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t010",targetState="nextMove",cond=whenTimeout("local_tout_pathexec_doMoveTurn"))   
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_doMoveTurn", 
+				 	 					  scope, context!!, "local_tout_pathexec_doMoveTurn", 300.toLong() )
+					}	 	 
+					 transition(edgeName="t07",targetState="nextMove",cond=whenTimeout("local_tout_pathexec_doMoveTurn"))   
 				}	 
 				state("doMoveW") { //this:State
 					action { //it:State
+						updateResourceRep( "pathexecdostep($CurMoveTodo)"  
+						)
 						request("step", "step($StepTime)" ,"basicrobot" )  
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t011",targetState="endWorkKo",cond=whenEvent("alarm"))
-					transition(edgeName="t012",targetState="nextMove",cond=whenReply("stepdone"))
-					transition(edgeName="t013",targetState="endWorkKo",cond=whenReply("stepfail"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t08",targetState="endWorkKo",cond=whenEvent("alarm"))
+					transition(edgeName="t09",targetState="nextMove",cond=whenReply("stepdone"))
+					transition(edgeName="t010",targetState="endWorkKo",cond=whenReply("stepfail"))
 				}	 
 				state("endWorkOk") { //this:State
 					action { //it:State
 						println("endWorkOk: PATH DONE - BYE")
+						updateResourceRep( "path $PathTodo done"  
+						)
 						answer("dopath", "dopathdone", "dopathdone(ok)"   )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 				state("endWorkKo") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						 var PathStillTodo = pathut.getPathTodo()  
+						updateResourceRep( "pathstilltodo($PathStillTodo)"  
+						)
 						println("PATH FAILURE - SORRY. PathStillTodo=$PathStillTodo")
 						answer("dopath", "dopathfail", "dopathfail($PathStillTodo)"   )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 			}

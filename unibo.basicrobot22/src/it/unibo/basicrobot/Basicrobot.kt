@@ -14,17 +14,19 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
-		  var StepTime      = 0L
-		  var StartTime     = 0L     
-		  var Duration      = 0L  
-		  var RobotType     = "" 
-		  var CurrentMove   = "unkknown"
+			  var StepTime      = 0L
+			  var StartTime     = 0L     
+			  var Duration      = 0L  
+			  var RobotType     = "" 
+			  var CurrentMove   = "unkknown"
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						discardMessages = false
 						println("basicrobot | START")
+						delay(5000) 
 						unibo.robot.robotSupport.create(myself ,"basicrobotConfig.json" )
 						 RobotType = unibo.robot.robotSupport.robotKind  
 						delay(1000) 
@@ -32,17 +34,25 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						 ){ var robotsonar = context!!.hasActor("realsonar")  
 						        	   if(robotsonar != null) unibo.robot.robotSupport.createSonarPipe(robotsonar) 
 						}
-						unibo.robot.robotSupport.move( "l"  )
-						unibo.robot.robotSupport.move( "r"  )
+						unibo.robot.robotSupport.move( "a"  )
+						unibo.robot.robotSupport.move( "d"  )
 						updateResourceRep( "basicrobot(start)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
 						println("basicrobot  | waiting .................. ")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t10",targetState="execcmd",cond=whenDispatch("cmd"))
 					transition(edgeName="t11",targetState="doStep",cond=whenRequest("step"))
 					transition(edgeName="t12",targetState="handleObstacle",cond=whenDispatch("obstacle"))
@@ -53,31 +63,37 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("cmd(MOVE)"), Term.createTerm("cmd(MOVE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								 CurrentMove = payloadArg(0)  
 								unibo.robot.robotSupport.move( payloadArg(0)  )
 								updateResourceRep( "moveactivated(${payloadArg(0)})"  
 								)
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleObstacle") { //this:State
 					action { //it:State
-						unibo.robot.robotSupport.move( "h"  )
 						updateResourceRep( "obstacle(${CurrentMove})"  
 						)
-						if(  CurrentMove == "w" 
-						 ){unibo.robot.robotSupport.move( "s"  )
-						delay(100) 
-						unibo.robot.robotSupport.move( "h"  )
-						}
-						emit("info", "info(obstacledoing(w))" ) 
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleSonar") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("doStep") { //this:State
@@ -85,16 +101,20 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("step(TIME)"), Term.createTerm("step(T)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-									StepTime = payloadArg(0).toLong() 	 
+									StepTime     = payloadArg(0).toLong()  	 
 								updateResourceRep( "step(${StepTime})"  
 								)
 						}
 						StartTime = getCurrentTime()
 						println("basicrobot | doStep StepTime =$StepTime  ")
 						unibo.robot.robotSupport.move( "w"  )
-						stateTimer = TimerActor("timer_doStep", 
-							scope, context!!, "local_tout_basicrobot_doStep", StepTime )
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_doStep", 
+				 	 					  scope, context!!, "local_tout_basicrobot_doStep", StepTime )
+					}	 	 
 					 transition(edgeName="t04",targetState="stepDone",cond=whenTimeout("local_tout_basicrobot_doStep"))   
 					transition(edgeName="t05",targetState="stepFail",cond=whenDispatch("obstacle"))
 				}	 
@@ -105,23 +125,30 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						)
 						answer("step", "stepdone", "stepdone(ok)"   )  
 						println("basicrobot | stepDone reply done")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
-						Duration = getDuration(StartTime)
 						unibo.robot.robotSupport.move( "h"  )
-						 var TunedDuration = Duration;  
-									TunedDuration = Duration * 5 / 6
-						println("basicrobot | stepFail duration=$Duration TunedDuration=$TunedDuration")
+						Duration = getDuration(StartTime)
+						 var TunedDuration   =  ((Duration * 0.80)).toLong()    
+						println("basicrobot | stepFail duration=$Duration  TunedDuration=$TunedDuration")
 						unibo.robot.robotSupport.move( "s"  )
 						delay(TunedDuration)
 						unibo.robot.robotSupport.move( "h"  )
 						updateResourceRep( "stepFail($Duration)"  
 						)
 						answer("step", "stepfail", "stepfail($Duration,obst)"   )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("endwork") { //this:State
@@ -129,7 +156,11 @@ class Basicrobot ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 						updateResourceRep( "basicrobot(end)"  
 						)
 						terminate(1)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 				}	 
 			}
 		}

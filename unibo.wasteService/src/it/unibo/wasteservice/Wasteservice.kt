@@ -14,20 +14,22 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
-				var CurrentPlasticWeight = 0L
-				var CurrentGlassWeight   = 0L
-				var OffsetPlastic        = 0L
-				var OffsetGlass          = 0L
-				val MAXP				 = 200L
-				val MAXG				 = 200L
-				
+				var Type                 = ""
+				var Accepted             = "False"
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						updateResourceRep( "trolleyPosition(home)"  
+						)
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t00",targetState="handleTruck",cond=whenRequest("storeload"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t020",targetState="handleTruck",cond=whenRequest("storeload"))
 				}	 
 				state("handleTruck") { //this:State
 					action { //it:State
@@ -35,61 +37,132 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 						if( checkMsgContent( Term.createTerm("storeload(TYPE,LOAD)"), Term.createTerm("storeload(TYPE,LOAD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
-												val Type   = payloadArg(0)
+												Type   = payloadArg(0)
 												val Weight = payloadArg(1).toLong()	
-								if(  Type.equals("glass") 
-								 ){if(  CurrentGlassWeight + OffsetGlass + Weight <= MAXG  
-								 ){
-														OffsetGlass  += Weight
-								answer("storeload", "loadaccepted", "loadaccepted(glass,$Weight)"   )  
-								request("activate", "activate($Type,$Weight)" ,"transporttrolley" )  
+								request("storeRequest", "storeRequest($Type,$Weight)" ,"storage_manager" )  
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t121",targetState="handleStorageReply",cond=whenReply("storeRequestReply"))
+				}	 
+				state("handleStorageReply") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("storeRequestReply(ANS)"), Term.createTerm("storeRequestReply(ANS)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								if(  payloadArg(0).equals("accepted")  
+								 ){ Accepted = "True" 
+								answer("storeload", "loadaccepted", "loadaccepted(_,_)"   )  
 								}
 								else
-								 {answer("storeload", "loadrejected", "loadrejected(glass,$Weight)"   )  
-								 }
-								}
-								else
-								 {if(  CurrentPlasticWeight + OffsetPlastic + Weight <= MAXP  
-								  ){
-								 						OffsetPlastic  += Weight	
-								 answer("storeload", "loadaccepted", "loadaccepted(plastic,$Weight)"   )  
-								 request("activate", "activate($Type,$Weight)" ,"transporttrolley" )  
-								 }
-								 else
-								  {answer("storeload", "loadrejected", "loadrejected(glass,$Weight)"   )  
-								  }
+								 { Accepted = "False" 
+								 answer("storeload", "loadrejected", "loadrejected(_,_)"   )  
 								 }
 						}
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t11",targetState="handlepickup",cond=whenReply("pickupDone"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="moveTrolleyIndoor", cond=doswitchGuarded({ Accepted.equals("True")  
+					}) )
+					transition( edgeName="goto",targetState="s0", cond=doswitchGuarded({! ( Accepted.equals("True")  
+					) }) )
+				}	 
+				state("moveTrolleyIndoor") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						
+									val X_Destination = positionUt.getCordX("indoor")
+									val Y_Destination = positionUt.getCordY("indoor")
+						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t222",targetState="handlepickup",cond=whenReply("destinationReached"))
 				}	 
 				state("handlepickup") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						forward("leaveindoor", "leaveindoor(ok)" ,"wastetruck" ) 
+						updateResourceRep( "trolleyPosition(indoor)"  
+						)
+						request("pickup", "pickup(true)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t22",targetState="handledepositdone",cond=whenEvent("loaddeposit"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t1123",targetState="handle_pickupDone",cond=whenReply("pickupDone"))
 				}	 
-				state("handledepositdone") { //this:State
+				state("handle_pickupDone") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("loaddeposit(TYPE,LOAD)"), Term.createTerm("loaddeposit(TYPE,LOAD)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												val Type = payloadArg(0)
-												val Load = payloadArg(1).toLong()
-												
-												if(Type.equals("glass")) {
-													CurrentGlassWeight   += Load
-													OffsetGlass          -= Load
-												}else {
-													CurrentPlasticWeight += Load
-													OffsetPlastic        -= Load
-												}
-						}
-						println("Weight updated")
+						//genTimer( actor, state )
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="moveTrolleyContainer", cond=doswitch() )
+				}	 
+				state("moveTrolleyContainer") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						
+									val X_Destination = positionUt.getCordX(Type)
+									val Y_Destination = positionUt.getCordY(Type)
+						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t424",targetState="handleDeposit",cond=whenReply("destinationReached"))
+				}	 
+				state("handleDeposit") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						updateResourceRep( "trolleyPosition($Type)"  
+						)
+						request("deposit", "deposit(true)" ,"transporttrolley" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t1125",targetState="handle_depositDone",cond=whenReply("depositDone"))
+				}	 
+				state("handle_depositDone") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						forward("updateWeights", "updateWeights(_)" ,"storage_manager" ) 
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_handle_depositDone", 
+				 	 					  scope, context!!, "local_tout_wasteservice_handle_depositDone", 10.toLong() )
+					}	 	 
+					 transition(edgeName="t526",targetState="moveTrolleyHome",cond=whenTimeout("local_tout_wasteservice_handle_depositDone"))   
+					transition(edgeName="t527",targetState="handleTruck",cond=whenRequest("storeload"))
+				}	 
+				state("moveTrolleyHome") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						
+									val X_Destination = positionUt.getCordX("home")
+									val Y_Destination = positionUt.getCordY("home")
+						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t1228",targetState="s0",cond=whenReply("destinationReached"))
 				}	 
 			}
 		}

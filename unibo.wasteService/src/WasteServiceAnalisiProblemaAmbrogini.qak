@@ -1,6 +1,6 @@
 System wasteservice
 
-mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
 
 //Requisiti: ArrivoWasteTruck, Accettato e Respinto
 Request  storeload  	: storeload( TYPE, LOAD )
@@ -14,9 +14,10 @@ Event    loaddeposit    : loaddeposit( TYPE, LOAD )
 Request  activate       : activate( TYPE, LOAD )
 Reply    pickupDone     : pickupDone( ARG )
 
-Context ctxWasteServicePrototipo1 ip [ host="localhost" port=8049 ]
+Context ctxwasteserviceproblemanalysis ip [host="localhost" port=8050]
 
-QActor wasteservice context ctxWasteServicePrototipo1 {
+
+QActor wasteservice context ctxwasteserviceproblemanalysis {
 	[#
 		var CurrentPlasticWeight = 0L
 		var CurrentGlassWeight   = 0L
@@ -107,7 +108,7 @@ QActor wasteservice context ctxWasteServicePrototipo1 {
 	
 }
 
-QActor transporttrolley context ctxWasteServicePrototipo1 {
+QActor transporttrolley context ctxwasteserviceproblemanalysis {
 	[#
 		var Container = ""
 		var Load      = 0L
@@ -172,7 +173,7 @@ QActor transporttrolley context ctxWasteServicePrototipo1 {
 	Goto s0
 }
 
-QActor wastetruck context ctxWasteServicePrototipo1 {
+QActor wastetruck context ctxwasteserviceproblemanalysis {
 	
 	
 	State s0 initial {
@@ -224,3 +225,4 @@ QActor wastetruck context ctxWasteServicePrototipo1 {
 	
 	Goto s0
 }
+

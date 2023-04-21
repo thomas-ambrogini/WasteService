@@ -14,12 +14,17 @@ class Navigator ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, 
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t00",targetState="findCord",cond=whenRequest("getCord"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t06",targetState="findCord",cond=whenRequest("getCord"))
 				}	 
 				state("findCord") { //this:State
 					action { //it:State
@@ -33,7 +38,11 @@ class Navigator ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, 
 												val Y_Cord = positionUt.getCordY(Destination)
 								answer("getCord", "cord", "cord($X_Cord,$Y_Cord)"   )  
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 			}

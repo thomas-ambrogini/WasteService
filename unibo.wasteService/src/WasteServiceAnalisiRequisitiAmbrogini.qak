@@ -10,6 +10,7 @@ Reply    loadrejected   : loadrejected( TYPE, LOAD )
 
 Context ctxWasteServicePrototipo1 ip [ host="localhost" port=8049 ]
 
+
 QActor wasteservice context ctxWasteServicePrototipo1 {
 	[#
 		var CurrentPlasticWeight = 0L
@@ -53,7 +54,6 @@ QActor wasteservice context ctxWasteServicePrototipo1 {
 		}
 		
 	}
-	
 }
 
 QActor transporttrolley context ctxWasteServicePrototipo1 {

@@ -1,0 +1,289 @@
+System transporttrolley
+
+//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+
+Request  pickup         : pickup( ARG )
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  deposit        : deposit( ARG )
+Reply    depositDone    : depositDone( ARG )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Dispatch gocontainer        : gocontainer( PATH )
+//Reply    endDeposit       : endDeposit( TYPE)
+
+Event    loaddeposit        : loaddeposit( TYPE, LOAD )
+
+Request  findPath           : findPath( X_DESTINATION, Y_DESTINATION )
+Reply    path               : path( PATH )
+
+Request  dopath             : dopath( PATH  )
+Reply 	 dopathdone     : dopathdone( ARG ) 
+Reply 	 dopathfail     : dopathfail( ARG )
+
+Dispatch blink   : blink(_)
+Dispatch turnon  : turnon(_)
+Dispatch turnoff : turnoff(_)
+
+//SONAR
+Event distance : distance(DIST)
+Dispatch stop   : stop(_)
+Reply stopAck  : stopAck(_)
+Dispatch resume : resume(_)
+Reply   resumeAck : resumeAck(_)
+Dispatch stopPath : stopPath(_)
+Dispatch resumePath: resumePath(_)
+
+Event alarm : alarm(STOP)
+
+
+Dispatch coapUpdate : coapUpdate(RESOURCE, VALUE)
+
+Context ctx_basicrobot 				  ip [ host="127.0.0.1" port=8020 ]  
+Context ctx_transporttrolley	      ip [ host="localhost" port=8051 ]
+Context ctx_rasp    				  ip [ host="127.0.0.1" port=8056 ]
+
+
+ExternalQActor pathexec context ctx_basicrobot
+ExternalQActor led  	context ctx_rasp
+
+QActor transporttrolley context ctx_transporttrolley {
+
+	[#
+		var RemainingPath = ""
+		var CurrentX_Destination = ""
+		var CurrentY_Destination = ""
+	#]
+	
+	State s0 initial {
+		printCurrentMessage	
+	}
+	
+	Transition t0 	whenMsg stop -> handle_stop
+					whenRequest moveToDestination -> move
+	
+	State move {
+		printCurrentMessage
+		updateResource [# "work" #]
+		
+		onMsg( moveToDestination : info( X_DESTINATION, Y_DESTINATION )) {
+			[#
+				CurrentX_Destination = payloadArg(0)
+				CurrentY_Destination = payloadArg(1)
+			#]
+			request pathfinder -m findPath : findPath( $payloadArg(0), $payloadArg(1) )
+		}
+	}
+	
+	Transition t1 	whenMsg stop -> handle_stop
+					whenReply dopathdone -> destinationReached
+	
+	State destinationReached {
+		printCurrentMessage
+		replyTo moveToDestination with destinationReached : destinationReached(ok)
+	}
+	
+	Transition t2 whenMsg stop -> handle_stop
+				  whenRequest pickup -> handle_pickup
+				  whenRequest deposit -> handle_deposit
+				  whenRequest moveToDestination -> move
+	
+	
+	State handle_pickup {
+		printCurrentMessage
+		delay 500
+		replyTo pickup with pickupDone : pickupDone(true)
+	}
+	
+	Transition t3 	whenMsg stop -> handle_stop
+					whenRequest moveToDestination -> move
+	
+	
+	State handle_deposit {
+		printCurrentMessage
+		delay 500
+		replyTo deposit with depositDone : depositDone(true)
+	}
+	
+	Transition t4 	whenMsg stop -> handle_stop
+					whenRequest moveToDestination -> move
+	
+	State handle_stop {
+		printCurrentMessage
+		emit alarm : alarm(STOP)
+		
+	}
+	
+	Transition t6 	whenTime 1000 -> stopped 
+					whenReply dopathdone -> stopped 
+					whenReply dopathfail -> savepath
+					
+	State savepath {
+		printCurrentMessage
+		onMsg(dopathfail: dopathfail(PATH)){
+			[#
+				RemainingPath = payloadArg(0)
+			#]	
+		}
+		println("TROLLEY | SAVE PATH: $RemainingPath")
+	}
+	
+	Goto stopped
+					
+	State stopped {
+		printCurrentMessage
+		println("TROLLEY | STOPPED")
+		updateResource [# "trolleyState(stop)" #]
+	}
+	
+	Transition t7 whenMsg resume -> handle_resume
+	
+	State handle_resume {
+		printCurrentMessage
+		updateResource [# "work" #]
+		
+		onMsg(resume : resume(STATE)){
+			
+			request pathexec -m dopath : dopath($RemainingPath) 
+			
+			[# RemainingPath = "" #]
+		}
+
+		
+		onMsg (dopathfail   : dopathfail( ARG )) {
+			[#
+				var RemainingPath = payloadArg(0)
+			#]
+			if [# RemainingPath.length == 1 || RemainingPath.length == 0#]{
+				[# RemainingPath = "" #]
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+			else{
+				//mancano più step, quindi procedo
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+		}
+
+//		request pathfinder -m findPath : findPath( $CurrentX_Destination, $CurrentY_Destination )
+
+	}
+	
+	Transition t2 whenMsg stop -> handle_stop
+				  whenReply dopathdone -> destinationReached
+				  whenRequest pickup -> handle_pickup
+				  whenRequest deposit -> handle_deposit
+				  whenRequest moveToDestination -> move
+
+}
+
+QActor pathfinder context ctx_transporttrolley { 
+
+	
+	State s0 initial {
+		printCurrentMessage
+		[# 
+			unibo.kotlin.planner22Util.initAI();
+			unibo.kotlin.planner22Util.loadRoomMap("mapRoomEmpty");
+			unibo.kotlin.planner22Util.showMap();
+			unibo.kotlin.planner22Util.showCurrentRobotState();
+		#]	
+	}
+	
+	Transition t0 whenRequest findPath -> findThePath
+	
+	State findThePath {
+		[#
+			var MovesToDo = ""	
+		#]
+		printCurrentMessage
+
+		onMsg( findPath : findPath( X_DESTINATION, Y_DESTINATION )) {
+			[#
+				val X_Destination = payloadArg(0)
+				val Y_Destination = payloadArg(1)
+				unibo.kotlin.planner22Util.planForGoal( X_Destination, Y_Destination )
+				MovesToDo = unibo.kotlin.planner22Util.getActions().joinToString("")
+				pathut.setPath(MovesToDo)
+				pathut.updateMap()
+			#] 
+		}
+
+		println(MovesToDo)
+		request pathexec -m dopath : dopath($MovesToDo)
+			
+	}
+	
+	Transition t1 	whenReply dopathdone -> pathDone
+					whenReply dopathfail -> pathFail
+					
+	
+	State pathDone {
+		printCurrentMessage
+		
+		replyTo findPath with dopathdone : dopathdone(ok)
+	}
+	
+	Transition t2 whenRequest findPath -> findThePath
+	
+	State pathFail {
+		printCurrentMessage
+		onMsg( dopathfail : dopathfail( ARG )) {
+			[#
+				val Remaining = payloadArg(0)	
+			#]
+			replyTo findPath with dopathfail : dopathfail( $payloadArg(0) )
+		}
+		
+		println("PATH FAILED")
+	}
+	
+	Transition t2 whenRequest findPath -> findThePath
+
+}
+
+
+QActor ledcontroller context ctx_transporttrolley {
+	State init initial {
+		observeResource transporttrolley
+	}
+	Goto observe
+	
+	State observe {
+	}	
+	Transition t0 whenMsg coapUpdate -> handleStatus
+	
+	State handleStatus {
+		// printCurrentMessage
+		onMsg ( coapUpdate : coapUpdate(RESOURCE, VALUE) ) {
+			println("Led Controller | Received update ${payloadArg(0)}")
+			[#
+				val Next = when(payloadArg(1)) {
+					"stopped" -> "off"
+					"home" -> "on"
+					else -> "blinking"
+				}
+				
+			#]
+			
+			if [# Next.equals("off") #] {
+				forward led -m turnoff : turnoff(_)
+			}
+			else {
+				if [# Next.equals("on") #] {
+					forward led -m turnon : turnon(_)
+				}
+				else {
+					forward led -m blink : blink(_)
+				}
+				
+			}	
+				
+			println("Led Controller | Setting led to $Next")
+
+		}
+	}
+	Goto observe
+}
+

@@ -1,0 +1,694 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+   
+   
+  	<link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+	<title>Sprint2 Thomas Ambrogini</title>
+		
+</head>
+    
+<body>
+	<div id="top">
+	<h1>LABORATORIO DI INGEGNERIA DEI SISTEMI SOFTWARE <font size="5"></font> </h1>
+	</div>  
+	
+	<div class="body"> 
+	<h2>Introduction</h2>
+	<div  class="remark">
+		Tema finale dell'esame di ingegneria dei sistemi software: WasteService
+	</div>
+	 
+	<h2>Requirements</h2>
+	
+	<div class="remark">
+	 
+	<p>A company intends to build a <span class="blue">WasteService</span> for the <em>separate collection of waste</em>,  composed of a set of elements:</p>
+	<ol class="arabic">
+		<li><p>a service area (rectangular, flat) that includes:</p>
+			<ul class="simple">
+				<li><p>an <span class="blue">INDOOR</span> port, to enter waste material</p></li>
+				<li><p>a <span class="blue">PlasticBox</span> container, devoted to store objects made of plastic, upto <strong>MAXPB</strong> kg of material.</p></li>
+				<li><p>a <span class="blue">GlassBox</span> container, devoted to store objects made of glass, upto <strong>MAXGB</strong> kg of material.</p></li>
+			</ul>
+			<p>The service area is free from internal obstacles, as shown in the following picture:</p>
+			<blockquote>
+			<div><a class="reference internal image-reference" href="img/WasteServiceRoom.PNG"><img alt="img/WasteServiceRoom.PNG" class="align-center" src="img/WasteServiceRoom.PNG" style="width: 60%;" /></a>
+			</div></blockquote>
+		</li>
+		<li><p>a DDR robot working as a <span class="blue">transport trolley</span>, that is intially situated in its <span class="blue">HOME</span> location.
+		The transport trolley has  the form of a square of side length <strong>RD</strong>.</p>
+		<p>The <cite>transport trolley</cite> is used to performa a <span class="blue">deposit action</span> that consists in the following phases:</p>
+		<ol class="arabic simple">
+		<li><p>pick up a waste-load from a <span class="blue">Waste truck</span> located on the <cite>INDOOR</cite></p></li>
+		<li><p>go from the <cite>INDOOR</cite> to the proper waste container</p></li>
+		<li><p>deposit the waste-load in the container</p></li>
+	</ol>
+	
+	<li><p>a <span class="blue">Service-manager</span> (an human being) which supervises the state of the service-area by using a
+	<span class="blue">WasteServiceStatusGUI</span>.</p></li>
+	<li><p>a <span class="blue">Sonar</span> and a <span class="blue">Led</span> connected to a RaspnerryPi. The <cite>Led</cite> is used as a <em>warning devices</em>,
+	according to the following scheme:</p>
+	<ul class="simple">
+	<li><p>the <cite>Led</cite> is <strong>off</strong> when the  <cite>transport trolley</cite> is at <cite>HOME</cite></p></li>
+	<li><p>the <cite>Led</cite> <strong>blinks</strong> while the <cite>transport trolley</cite> is moving</p></li>
+	<li><p>the <cite>Led</cite> is <strong>on</strong> when <cite>transport trolley</cite> is stopped.</p></li>
+	</ul>
+	<p>The <cite>Sonar</cite> is used as an alarm device: when it measures a distance less that a prefixed value <strong>DLIMT</strong>,
+	the <cite>transport trolley</cite> must be stopped.
+	It will be resumed when <cite>Sonar</cite> detects again a distance higher than  <strong>DLIMT</strong>.</p>
+	</li>
+	</ol>
+	<section id="tfrequirements">
+	<h2>TFRequirements</h2>
+	<p>The main goal of the <span class="blue">WasteService</span> software is to allow a <span class="blue">Waste truck</span> to deposit its load of
+	<strong>TruckLoad</strong> kg plastic or glass in the proper container.</p>
+	<p>The global story can be described as follows:</p>
+	<ol class="arabic simple">
+	<li><p>The <cite>Waste truck</cite> driver approaches the <cite>INDOOR</cite> and sends (using a smart device) a request to store the load,
+	by specifyng the <cite>type of  the material</cite> (plastic or glass) and its <cite>TruckLoad</cite>.</p></li>
+	<li><p>The <cite>WasteService</cite> sends the answer <em>loadaccept</em> if the final content of proper container will not surpass the
+	maximum value allowed (<em>MAXPB</em> or <em>MAXGB</em>). Otherwise, it sends the answer <em>loadrejecetd</em> and the  <cite>Waste truck</cite>
+	leaves the <cite>INDOOR</cite> area.</p></li>
+	<li><p>When the load is accepted, the <cite>transport trolley</cite> reaches the <cite>INDOOR</cite>, picks up the material, goes to the
+	proper container and settles the material. During this activity, the <cite>WasteService</cite> <strong>blinks</strong> the <cite>Led</cite></p></li>
+	<li><p>When the deposit action is terminated, the <cite>transport trolley</cite>  excutes another deposit command (if any)
+	or returns to its <cite>HOME</cite>.</p></li>
+	</ol>
+	<p>The <cite>WasteService</cite> must create a <span class="blue">WasteServiceStatusGUI</span> that shows to the <em>Service-manager</em>:</p>
+	<ul>
+	<li><p>the current state of the <cite>transport trolley</cite> and it position in the room</p></li>
+	<li><p>the current weigth of the material stored in the two waste-containers</p></li>
+	<li><p>the current state of the <cite>Led</cite></p>
+	
+	</li>
+	</ul>
+	
+	</div>
+	
+	 
+	
+	<h2>Requirement analysis</h2>
+	
+	<div class="remark">
+	<section id="requisiti-funzionali">
+		<h3>Requisiti funzionali<a class="headerlink" href="#requisiti-funzionali" title="Permalink to this headline">¶</a></h3>
+		
+		
+		Requisiti riguardanti LED e SONAR
+		<ol class="arabic simple">
+			<li>
+				<p><em>Led Off</em>: nel caso in cui il trolley si trovi nella posizione HOME.</p>	
+			</li>
+			<li>
+				<p><em>Led Blinks</em>: mentre il trolley si sta muovendo.</p>	
+			</li>
+			<li>
+				<p><em>Led On</em>: quando il trolley è stoppato.</p>	
+			</li>
+			<li>
+				<p><em>Sonar</em>: nel caso in cui il sonar misuri una distanza minore di DLIMIT, il trolley deve essere stoppato. Verrà riattivato quando il sonar rileverà una distanza maggiore di DLIMIT </p>
+			</li>
+		</ol>
+		
+		
+	
+	<section id="valori-preimpostati">
+		<h3> Valori preimpostati specificati nei requisiti <a class="headerlink" href="#valori-preimpostati" title="Permalink to this headline">¶</a></h3>
+			<ol class="arabic simple">
+				<li>
+					MAXPB: Contenuto massimo del container della plastica.
+				</li>
+				<li>
+					MAXGB: Contenuto massimo del container del vetro.
+				</li>
+				<li>
+					DLIMIT: Distanza sotto la quale il trolley deve essere fermato.
+				</li>
+				<li>
+					RD: Lunghezza del lato del trolley.
+				</li>
+			</ol>
+			
+
+	<section id="glossario">
+		<h3>Glossario<a class="headerlink" href="#glossario" title="Permalink to this headline">¶</a></h3>
+			
+			<ol class="arabic simple">
+				<li>
+					DDR robot: Con il termine DDR (Differential Drive Robot) robot il commitente intende il robot del progetto unibo.basicrobot22
+				</li>
+				<li>
+					Transport Trolley: Il transport trolley non è il DDR Robot, sono due entità distinte. Il trolley potrebbe sfruttare il DDR robot per 
+					eseguire i movimenti necessari.
+				</li>
+			</ol>
+			
+	<section id="qak">
+	<h3> Utilizzo di attori e QAK <a class="headerlink" href="#qak" title="Permalink to this headline">¶</a></h3>
+		In questo progetto vengono utilizzati attori, come entita di base, che permettono di facilitare la realizzazione
+		di un sistema distribuito. Inoltre, viene utilizzato il metalinguaggio QAK, che sfrutta gli attori, per poter definire
+		in maniera formale, fin dalle prime fasi del progetto, i requisiti e poter creare prototipi per interagire con il committente.
+	
+	
+	
+	<h3> Led </h3>
+	
+	Per quanto riguarda la gestione del LED, il committente ha fornito diversi materiali: led25GpioTurnOn.sh che
+	permette di accendere un led e led25GpioTurnOff.sh che permette di spegnere un led.
+	<br>
+	Inoltre, l'azienda dispone di un progetto che permette di gestire un Led in modo semplice, attraverso
+	Java, it.unibo.radarSystem22.domain, che si consiglia di utilizzare.
+	<br> <br>
+	
+	Dai requisiti è possibile notare tre diversi comportamente che il led deve esibire:
+	
+	<ul>
+		<li>
+			TurnOn: accensione del Led. il led deve essere acceso quando il tranport trolley è fermo, in seguito ad un interrupt 
+			dovuto al sonar.
+		</li>	
+		<li>
+			TurnOff: spegnimento del Led. Il led deve essere spento quando il trolley si trova nella 
+			posizione HOME.
+		</li>
+		<li>
+			Blink: spegnimento ed accensione in modo alterno. Il led deve lampeggiare quando il trolley
+			si sta muovendo.
+		</li>
+	</ul>
+	
+	Il progetto che è stato sviluppato dalla software house permette di eseguire solamente i primi due
+	comportamente e si ha quindi la necessità di implementare il terzo comportamento.
+	<br>
+	Il Led deve essere realizzato come attore per poter interagire con gli altri componenti del sistema.
+	
+	
+	<h3> Sonar </h3>
+	Il Sonar è un dispositivo di input che emette la distanza dall'ostacolo più vicino ad esso.<br>
+	Per dare conoscenza agli altri componenti del sistema della distanza rilevata si possono utilizzare 
+	due strategie: 
+	
+	<ul>
+		<li>
+			Polling: Il componente interessato ai dati prodotti dal dispositivo di input invoca un metodo
+			del sonar per ricevere il primo dato disponibile.
+		</li>
+		<li>
+			Observer: il componente consumatore dei dati si relaziona con il dispositivo di input secondo
+			il pattern observer, lasciando il sonar come un generatore di dati che non si interessa
+			dei destinatari delle proprie informazioni.
+		</li>
+		
+	</ul>
+	
+	
+	Anche nel caso del Sonar, il committente fornisce del materiale da utilizzare: SonarAlone.c che permette
+	di ricevere i valori di un sonar collegato al Raspberry Pi.<br>
+	Dai requisiti sul sonar si sono notati due principali comportamenti relativi al sonar:
+	
+	<ul>
+		<li>
+			Stop: nel caso in cui la distanza sia minore di DLIMIT, il trolley deve fermarsi.
+		</li>
+		<li>
+			Resume: nel caso in cui la distanza sia maggiore di DLIMIT, il trolley deve ripartire con le
+			sue funzioni.
+		</li>
+	</ul>
+	
+	I tipi di comunicazione che il sonar andrà ad utilizzare per comunicare con il resto del sistema
+	verranno definiti in fase di analisi del problema.
+	
+	Il sonar deve essere realizzato come attore per poter interagire con gli altri componenti del sistema.
+	
+	
+	
+	<h3> Problemi da analizzare</h3>
+	
+	<h4> Tipo di interazione con il Led</h4>
+	Quale tipo di comunicazione per fare eseguire al led le varie operazioni?
+	
+	<h4> Stato del trolley</h4>
+	Come fa il led a sapere lo stato del trolley?
+	
+	<h4> Interazione con il Led</h4>
+	Quale componente deve interagire con il Led?
+	
+	<h4> Tipo di interazione per i messaggi del Sonar</h4>
+	Che tipo di comunicazione bisogna usare per inviare i messaggi del sonar (resume/stop)?
+	
+	<h4> Modo in cui il Sonar invia i dati registrati </h4>
+	Che tipo di comunicazione si vuole utilizzare per comunicare i dati che il sonar registra?
+	
+	<h4> Analisi distanze</h4>
+	Quale componente analizza le distanze rilevate dal sonar?
+	
+	</div>
+	
+	<h2>Problem analysis</h2>
+
+	 
+	 <div class="remark">
+	 
+	 
+	 	<h3>Tipo di Interazione con il Led</h3>
+	 		Per segnalare al led di doversi accendere/spegnere/lampeggiare esistono diverse soluzioni.<br>
+	 		
+	 		<h4> Dispatch </h4>
+	 		<pre><key2>Dispatch</key2> blink   : blink(_)<br><key2>Dispatch</key2> turnon  : turnon(_)<br><key2>Dispatch</key2> turnoff : turnoff(_)</pre>
+	 		Potrebbe anche essere realizzato come un solo messaggio e si specifica nell'argomento quale
+	 		azione eseguire.
+	 		
+	 		<h4> Evento </h4>
+	 		<pre><key2>Event</key2> ledStatus   : ledStatus(Status)</pre>
+	 		Si potrebbe utilizzare un evento per poter specificare al led di cambiare il prorio stato.
+	 		Il principale vantaggio di una soluzione ad eventi è la grande estendibilità che garantisce, dato
+	 		che nel momento in cui si vanno ad aggiungere nuovi led, basta che si mettano in ascolto 
+	 		dell'evento.
+			<br>
+			Lo svantaggio principale dell'evento è la sicurezza nella consegna del messaggio. Nel caso si 
+			perda un segnale di blink non sarebbe un problema, ma diventerebbe un problema nel momento in 
+			cui si perda un segnale di on o off.
+	 
+		<h3>Stato del trolley</h3>
+		Nello sprint1 non si aveva necessità di conoscere lo stato del trolley (active, stopped, idle) e
+		quindi non si ha ancora un componente che lo emetta. <br>
+		
+		<h4> Evento </h4>
+		Per poter comunicare lo stato del trolley si pensa di poter utilizzare una soluzione ad eventi, in
+		modo che tale evento possa successivamente essere anche ricevuto successivamente dalla GUI.
+		
+		<h4> CoAP observable </h4>
+	 	Essendo il trolley sviluppato come Attore Qak, esso risulta essere una risorsa CoAP observable ed
+	 	è, quindi, possibile sfruttare questa caratteristica andando a creare un observer che analizzi i
+	 	cambiamenti di stato del trolley.
+	 	
+	 	<br>
+	 	
+	 	Si può anche discutere su quale componente debba emettere l'informazione. Da un lato potrebbe 
+	 	essere delegata al WasteService, dall'altro potrebbe essere il transportTrolley ad emettere
+	 	l'informazione.<br>
+	 	Essendo lo stato del trolley strettamente legato al trolley stesso sembrerebbe essere una soluzione
+	 	più intuitiva e ragionevole.
+	 	
+	 	<h3> Interazione con il led</h3>
+	 	<h4> WasteService </h4>
+	 	In una prima soluzione potrebbe essere il wasteService che si occupa di segnalare al led se 
+	 	spegnersi o accendersi o lampeggiare.
+	 	<br>
+	 	Anche se questa soluzione permetterebbe di delegare la maggior parte della logica di business al 
+	 	WasteService, comporta un costo di overhead nel numero di messaggi da scambiare, soppratutto nel 
+	 	caso in cui si decida di lasciare al transportTrolley la responsabilità di comunicare lo stato nella
+	 	quale esso si trovi.
+	 	
+	 	<h4> Transport Trolley</h4>
+	 	Potrebbe essere il transport Trolley a comunicare direttamente al led quale azione eseguire.
+	 	<br>
+	 	Si sconsiglia fortemente questa soluzione, dato che porterebbe ad aggiungere al trolley grosse 
+	 	responsabilità per quanto riguarda la logica di business.
+	 	
+	 	<h4> Gestore del led </h4>
+	 	Si potrebbe realizzare un ulteriore componente che osservi lo stato del trolley (nel caso in cui si 
+	 	scelga la soluzione basata su CoAP oppure che esamini gli eventi nel caso della prima soluzione) e 
+	 	segnali al led di eseguire le varie operazioni.
+	 	
+	 	
+	 	
+	 	
+	 	
+	 	<h3>Tipo di interazione con il sonar</h3>
+	 	
+	 	Il sonar ha la necessità di comunicare con il resto del sistema per bloccare/riprendere il percorso
+	 	del trolley.
+	 	Data l'importanza di queste operazioni si sconsiglia una soluzione basata ad eventi.
+	 	
+	 	<h4> Dispatch </h4>
+	 	<pre><key2>Dispatch</key2> stop   : stop(_)<br><key2>Dispatch</key2> resume  : resume(_)<br></pre>
+	 	
+	 	
+	 	<h4> Request/Respone</h4>
+	 	Questa comunicazione potrebbe anche essere realizzata tramite request/response. In questo caso, la
+	 	response potrebbe essere utilizzata come segnale di ACK per essere sicuri che l'operazione sia
+	 	stata ricevuta correttamente.
+	 	<br>
+	 	Considerando che questi tipi di messaggi dovrebbero essere piuttosto rari, l'overhead generato dalla
+	 	risposta risulta essere completamente trascurabile.
+	 	<br>
+	 	In questo modo si ha la possiblità di realizzare a livello applicativo un comportamento in caso
+	 	il messaggio non venga consegnato.
+	 	<pre><key2>Request</key2> stop   : stop(_)<br><key2>Reply</key2> stopAck  : stopAck(_)<br></pre>
+	 	
+	 	
+	 	<h3>  Modo in cui il Sonar invia i dati registrati </h3>
+	 	
+	 	<h4> Eventi </h4>
+	 	<pre><key2>Event</key2> distance   : distance(DIST)</pre>
+		Il Sonar potrebbe emettere ad ogni aggiornamento sulla distanza un evento contenente la nuova 
+		distanza, ed i componenti interessati del sistema potranno ricevere tale informazione. <br>
+		Considerando che potrebbero esserci diversi componenti interessati a questa informazione, 
+		anche per possibili evoluzioni del progetto, potrebbe essere una buona soluzione.
+		
+		<br><br>
+		
+		<h4> CoAP </h4>
+		Essendo un attore QaK è possibile analizzare le sue informazioni attraverso CoAP.<br> Il principale
+		svantaggio di questa soluzione è il fatto che il componente che interagisce con il sonar deve 
+		effettivamente conoscerlo, a differenza della soluzione tramite eventi.
+		
+		<h4>Note</h4>
+		Come citato in precedenza, nel caso in cui ci possano essere diversi componenti interessati alla
+		distanza emessa dal sonar, la soluzione ad eventi risulta preferibile. <br>
+		Nel caso in cui si usasse CoAP ci sarebbe un'interazione request/response ogni volta che un 
+		componente sia interessato alla distanza e questo potrebbe sovraccaricare il sistema.<br>
+		Quindi, anche per ragioni di scalabilità, si consiglia la soluzione ad eventi.
+		
+		<br><br>
+	 	
+	 	
+	 	
+	 	<h3> Analisi distanze</h3>
+	 	<h4> Waste Service</h4>
+		Il waste Service potrebbe analizzare le distanze rilevate dal sonar per poi mandare i comandi
+		direttamente al Trolley.<br>
+		In questo modo si vanno ad aggiungere ulteriori responsabilità al wasteService.
+		
+		<h4> Trolley </h4>
+		Il trolley potrebbe analizzare le distanze e quando trova una distanza minore di DLIMIT, si potrebbe
+		fermare. <br>
+		A livello implementativo potrebbe risultare la soluzione più semplice, ma aumenta l'accoppiamento
+		fra i componenti e si perde la possiblità di realizzare il trolley come attuatore.
+		
+		<h4> Componente aggiuntivo </h4>
+		Un ulteriore componente potrebbe essere inserito nel sistema per poter analizzare le distanze, e 
+		nel caso sia opportuno inviare al trolley il segnale per poter stoppare/riprendere le sue
+		azioni. <br>
+		Questa soluzioni risulta la più flessibile.
+	 	
+	 	
+	 	<h3> Chi riceve il comando per bloccare/riprendere l'esecuzione del trolley</h3>
+	 	Il segnale che si occupa di bloccare/riprendere l'esecuzione del trolley potrebbe essere gestito
+	 	da diversi componenti:
+	 	
+	 	<h4>Transport Trolley Handler</h4>
+	 	Potrebbe essere il componente di più alto livello a gestire questi messaggi, per poi comunicarli
+	 	al livello sottostante (Mover). <br>
+	 	Con questa soluzione possiamo fornire all'handler un'informaizone sul proprio stato, che potrebbe 
+	 	esserre utilizzata per comunicare con il resto del sistema.
+	 	
+	 	<h4> Transport Trolley mover</h4>
+	 	Potrebbe essere il mover a gestire questi segnali, essendo i comandi di blocco/ripresa comandi 
+	 	relativi all'effettivo movimento del robot (e quindi di basso livello).
+	 	<br>
+	 	Tutto avverebbe in maniera completamente trasparente rispetto ai componenti di alto livello.
+	 	Essendo che, al momento, il componente Handler del trolley si occupa solamente delle azioni
+	 	di alto livello di quest'ultimo, questa soluzioni risulta ragionevole.
+	 	
+	 	<h4> BasicRobot </h4>
+	 	Si potrebbe apportare una modifica al basicRobot per poter comunicare direttamente con esso. <br>
+	 	Essendo che si è deciso di utilizzare il basicRobot per facilitare lo sviluppo del sistema (essendo
+	 	esso un componente già sviluppato dalla software house) si sconsiglia questa soluzione.
+	 	
+	 	
+	 	<h3> Modello analisi del Problema Sprint2 </h3>
+	
+		<a href="../ProblemQakSprint2/src/ProblemSprint2.qak" >Modello</a>
+	 
+	 	
+	 	
+	 </div>
+	
+	<h2>Test plans</h2> 
+	
+	<div class="remark">
+		Vengono riportati sia i test plan mostrati precedentemente durante la fase di analisi dei requisiti e ulteriori
+		test per verificare alcune delle nuove feature introdotte nella fase di Analisi del problema.<br>
+		Nei test si presuppone che sia il test stesso ad inviare il messaggio che normalmente sarebbe inviato dal wastetruck 
+		per far iniziare la procedura.
+	
+		<br><br>
+	
+		<b>Test Request</b><br>
+		<a href="../test/it/unibo/wasteservice/TestRequest.java" >Test request</a> <br>
+		
+		<ul>
+			<li>
+				TestRequestOk: il test invia una richiesta di storeload con un carico che possa essere accettato e si verifica
+				che il waste service invii la risposta corretta (loadaccepted)
+			</li>
+			<li>
+				TestRequestFail: il test invia una richiesta di storeload con un carico molto elevato e si verifica
+				che il waste service invii la risposta corretta (loadrejected)
+			</li>
+		</ul>
+		
+		<br><br>
+		
+		<b>Test Deposit</b><br>
+		<a href="../test/it/unibo/wasteservice/TestDeposit.java" >Test deposit</a> <br>
+		
+		<ul>
+			<li>
+				TestDepositOk: il test controlla che il trolley si fermi in tutte le posizioni corrette per poter effettuare un 
+				deposito.
+			</li>
+			<li>
+				TestDepositFail: il test controlla che nel caso si inseriscano il posizioni errate venga generato un errore.
+			</li>
+			
+			<li>
+				TestDeposit: controlla che il peso all'interno del container sia stato aggiornato correttamente
+			</li>
+		</ul>
+		
+		<br><br>
+		
+		<b>Test End Deposit</b><br>
+		<a href="../test/it/unibo/wasteservice/TestEndDeposit.java" >Test end deposit</a> <br>
+		
+		<ul>
+			<li>
+				TestDepositReturnHome: controlla che il trolley torni ad home nel caso non ci siano nuove richieste da servire.
+			</li>
+			<li>
+				TestDepositAnotherRequest: controlla che, nel caso ci siano nuove richieste una volta terminato il deposito, il trolley torni ad indoor
+				e non vada ad home.
+			</li>
+			
+		</ul>
+		
+		<b>Test Update Weigths</b><br>
+		<a href="../test/it/unibo/wasteservice/TestUpdateWeights.java" >Test Update Weights</a> <br>
+		
+		<ul>
+			<li>
+				TestUpdateOk: Controlla che i pesi siano aggiornati correttamente.
+			</li>
+			<li>
+				TestUpdateFail: Controlla che, nel caso in cui i pesi siano aggiornati erroneamente, si segnali l'errore.
+			</li>
+			
+		</ul>
+		
+		
+	</div>
+	
+	
+	
+	<h2>Project</h2> 
+	<div class="remark">
+	<h3> Waste Service </h3>
+	Il primo compito della progettazione sarà quello di separare i vari compiti attribuiti al WasteService in Analisi del problema.
+	
+	<ul>
+		<li>
+			Handler: una entità principale che si occupa di ricevere le richieste di deposito da parte del WasteTruck ed inizia
+			la procedura di deposito
+		</li>
+		
+		<li>
+			Core: componente che si occupa di gestire il requisito Core definito in analisi dei requisiti. In particolare, 
+			essendo che il trolley viene trattato come un semplice attuatore, la parte Core del waste Service si occuperà
+			di segnalare tutti i movimenti che il trolley deve fare e di tenere traccia della sua posizione.
+		</li>
+		
+		<li>
+			Storage: per scopo prototipale, in analisi del problema, il compito dello storage è stato fornito al WasteService
+			cablando i dati all'interno di esso. In progettazione verrà aggiunto un nuovo componente, che interagirà con il 
+			WasteService, che si occuperà proprio di gestire i pesi nei vari container.
+		</li>
+		
+		<li>
+			Un file di configurazione per quanto riguarda i parametri (come la posizione dei container).
+		</li>
+	
+	</ul>
+	
+	
+	<h4> WasteServiceHandler </h4>
+	La parte Handler del wasteService viene realizzato come un'applicazione web realizzata tramite Spring per facilitarne lo sviluppo.
+	<br>
+	Il primo compito che l'handler deve eseguire è quello di interagire con il WasteTruck, realizzandolo, a questo punto, come
+	un vero e proprio "alieno" e non un attore come veniva mostrato in analisi per scopi prototipali.
+	Verrà realizzata un interfaccia Web per il WasteTruck per comunicare con il WasteServiceHandler attraverso
+	API Rest.
+	<br>
+	Successivamente l'handler dovrà interagire con il nuovo componente introdotto: StorageManager, per potersi
+	assicurare che ci sia lo spazio nei container per poter depositare i materiali.
+	Per fare questo, non essendo un attore il componente handler, agirà a sua volta da alieno nei confronti
+	del contesto QAK.
+	In seguito alla risposta dello storageManager, l'handler andrà ad inviare loadaccepted o loadrejected
+	al wasteTruck.
+	<br>
+	Infine, l'applicazione Web andrà ad interagire con il componente Core del WasteService per poter 
+	iniziare la vera e proprio azione di pickup/deposito. Per fare questo si necessita di introdurre
+	un nuovo scambio di informazioni e quindi un nuovo messaggio.
+	Dato che l'handler necessita di una risposta, per sapere quando liberare il WasteTruck dall'area di deposito,
+	questa comunicazione verrà realizzata come una request/reply. 
+	<br>
+	
+	<pre><key2>Request</key2> startDeposit : startDeposit(_) <br><key2>Reply</key2> pickedUp : pickedUp(_)</pre>
+	
+	<br>
+	Quando l'handler deve avviare la fase di deposito invia il messaggio di startDeposito al componente
+	Core e quando il trolley ha effettivamente ritirato i materiali da Indoor il componente Core invia
+	la reply pickedUp all'handler, che si occuperà di inviare il messaggio mostrato in analisi del problema:
+	"LeaveIndoor" per poter segnalare al truck di liberare l'area di scarico, in modo da poter accettare
+	nuove richieste.
+	
+	
+	
+	<h4> WasteServiceCore </h4>
+	Il componente Core del WasteService si occuperà di gestire la logica di business dell'applicazione e
+	inviare i vari messaggi per poter comandare il transportTrolley come è stato mostrato con il WasteService
+	nel prototipo dell'analisi del problema.
+	<br>
+	Quando il Core riceverà il messaggio di startDeposit da parte dell'handler, si avviano le operazioni
+	necessarie per poter eseguire tutte le azioni per arrivare al deposito dei materiali all'interno del 
+	container corretto.
+	
+	<br>
+	Al termine dell'azione di pickup da parte del Trolley, il Core invierà la reply introdotta 
+	precedentemente: "pickedUp" all'handler, in modo da poter liberare l'area di deposito.
+	
+	
+	<h4> StorageManager </h4>
+	Il componente StorageManager si occuperà di gestire il peso corrente nei container e di valutare se sia 
+	possibile depositare il carico specificato da un WasteTruck che si trova nell'area di scarico.
+	<br>
+	Ogni volta che il peso verrà modificato il compenente utilizzerà il protocollo CoAP per segnalare la 
+	modifica. Questo facilita sia la fase di testing per verificare che il sistema funzioni correttamente, sia
+	permette a componenti interessati a questi cambiamenti di poterli "ascoltare".
+	
+	<br>
+	Per poter realizzare queste nuove comunicazioni servono nuovi messaggi.
+	<pre><key2>Request</key2> storeRequest : storeRequest(MAT, QNT) <br><key2>Reply</key2> storeRequestReply : sotreRequestReply(ANS)</pre>
+	
+	<br>
+	Il componente Handler del WasteService utilizzerà il messaggio di request "storeRequest" per poter
+	chiedere allo StorageManager se sia possibile depositare il materiale MAT con quantità QNT, lo 
+	StorageManager, attraverso la reply "storeRequestReply", segnalerà se sia possibile o meno farlo.
+	
+	<br>
+	Per poter aggiornare i pesi, in seguito alla deposit da parte del trolley, si introduce un evento,
+	inviato dal WasteServiceCore, per segnalare l'avvenuto deposito. Quando lo StorageManager riceve questo
+	evento si occuperà di aggiornare i pesi ed inviare un messaggio tramite CoAP per comunicare il nuovo
+	valore del peso dei container.
+	
+	<pre><key2>updateResource</key2>[# "glass($CurrentGlassWeight), plastic($CurrentPlasticWeight)" #]</pre>
+	
+	<h4> File di configurazione</h4>
+	Infine, viene introdotto un file di configurazione nella quale vengono inseriti tutti i valori 
+	preimpostati in modo da non doverli cablare nel codice.
+	
+	
+	<pre>
+		{
+		    <key4>"LOCATION"</key4>: {
+		        <key4>"HOME"</key4>: [0, 0],
+		        <key4>"INDOOR"</key4>: [16, 0],
+		        <key4>"PLASTICBOX"</key4>: [16, 19],
+		        <key4>"GLASSBOX"</key4>: [0, 19]
+		    },
+		    <key4>"MAXPB"</key4>: 500,
+		    <key4>"MAXGB"</key4>: 500,
+		    <key4>"DLIMIT"</key4>: 40
+		}
+		</pre>
+	
+	
+	<h3> Transport Trolley </h3>
+	Seguendo le indicazioni dell'analisi del problema si è voluto realizzare il transportTrolley come
+	un attuatore. <br>
+	Tuttavia si ha una parte di logica di business che non può essere eliminata dal trolley, in particolare,
+	la parte nella quale si necessita di fare il pickup ed il deposito dei materiali.
+	<br>
+	In progettazione si vogliono separare queste due parti del transportTrolley:
+	
+	<ul>
+		<li>
+			TransportTrolleyHandler: Un primo componente che si occupi proprio di fare queste operazioni e di fare da "manager"
+			delle richieste che arrivano da parte del WasteService. In particolare, in analisi
+			era stato evidenziata la necessità di un componente che trovasse un percorso verso la destinazione
+			inviata dal WasteService. <br>
+			Questo componente si occuperà, prima di tutto, di chiedere il percorso al componente mostrato 
+			in analisi "PathFinder" e successivamente di inviare il percorso al componente che si occupa
+			di muovere il trolley lungo tale percorso.
+	
+		</li>
+		<li>
+			TransportTrolleyMover: Un secondo componente che si occupi effettivamente dei movimenti da eseguire per raggiungere
+			la destinazione specificata. In particolare, si è pensato di utilizzare il BasicRobot e il 
+			PathExec (componenti già realizzati dalla software house per poter effettivamente muovere
+			il robot).
+			BasicRobot permette di implementare il movimento del robot in modo indipendente dalla tecnologia
+			utilizzata, il che lo rende un componente fondamentale in fase di testing e sviluppo.
+		</li>
+	</ul>
+	
+	
+	
+	
+	</div>
+	
+	<h2>Testing</h2> 
+	 
+	
+	<h2>Deployment</h2> 
+	
+	 
+	<h2>Maintenance</h2> 
+	 
+	<!-- USEFUL
+	<table style="width:100%" border="1">
+	<tr>
+	<td style="width:50%">
+	</td>
+	<td></td>
+	</tr>
+	</table>
+	-->
+		      	
+	<br/><br/> 	
+
+	
+	<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;color:white">
+	By Thomas Ambrogini email: thomas.ambrogini@studio.unibo.it  
+	<img src="./img/ThomasAmbrogini.jpg" alt="mbot" width="15%" height="15%">
+	</div> 
+</body>
+</html>

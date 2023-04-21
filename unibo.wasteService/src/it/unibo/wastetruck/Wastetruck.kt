@@ -14,12 +14,17 @@ class Wastetruck ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						delay(5000) 
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="requestdischarge", cond=doswitch() )
 				}	 
 				state("requestdischarge") { //this:State
@@ -36,30 +41,45 @@ class Wastetruck ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 									else
 										Type = "plastic"
 						request("storeload", "storeload($Type,$Load)" ,"wasteservice" )  
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t13",targetState="accepted",cond=whenReply("loadaccepted"))
-					transition(edgeName="t14",targetState="rejected",cond=whenReply("loadrejected"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t129",targetState="accepted",cond=whenReply("loadaccepted"))
+					transition(edgeName="t130",targetState="rejected",cond=whenReply("loadrejected"))
 				}	 
 				state("rejected") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("Request rejected")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 				state("accepted") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("Request accepted")
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t25",targetState="handleleave",cond=whenDispatch("leaveindoor"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t231",targetState="handleleave",cond=whenDispatch("leaveindoor"))
 				}	 
 				state("handleleave") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("Leaving indoor")
+						//genTimer( actor, state )
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 				}	 
 			}
 		}

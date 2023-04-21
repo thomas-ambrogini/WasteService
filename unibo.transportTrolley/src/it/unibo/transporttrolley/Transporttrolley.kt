@@ -14,71 +14,70 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-				var CurPosition = ""
-				var Destination = ""
-				var Container   = ""
-				var Load        = 0L
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t00",targetState="handleactivate",cond=whenRequest("activate"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t00",targetState="move",cond=whenRequest("moveToDestination"))
 				}	 
-				state("handleactivate") { //this:State
+				state("move") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("activate(TYPE,LOAD)"), Term.createTerm("activate(TYPE,LOAD)"), 
+						updateResourceRep( "work"  
+						)
+						if( checkMsgContent( Term.createTerm("info(X_DESTINATION,Y_DESTINATION)"), Term.createTerm("info(X_DESTINATION,Y_DESTINATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												Container = payloadArg(0)
-												Load      = payloadArg(1).toLong()
+								request("findPath", "findPath(${payloadArg(0)},${payloadArg(1)})" ,"transporttrolley_mover" )  
 						}
+						//genTimer( actor, state )
 					}
-					 transition( edgeName="goto",targetState="pathForIndoor", cond=doswitch() )
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t11",targetState="destinationReached",cond=whenReply("dopathdone"))
 				}	 
-				state("pathForIndoor") { //this:State
+				state("destinationReached") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						request("findPath", "findPath(indoor)" ,"pathfinder" )  
+						answer("moveToDestination", "destinationReached", "destinationReached(ok)"   )  
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t11",targetState="pickup",cond=whenReply("dopathdone"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t22",targetState="handle_pickup",cond=whenRequest("pickup"))
+					transition(edgeName="t23",targetState="handle_deposit",cond=whenRequest("deposit"))
+					transition(edgeName="t24",targetState="move",cond=whenRequest("moveToDestination"))
 				}	 
-				state("pickup") { //this:State
+				state("handle_pickup") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						delay(1000) 
-						println("Pickup done")
-						answer("activate", "pickupDone", "pickupDone(ok)"   )  
+						delay(500) 
+						answer("pickup", "pickupDone", "pickupDone(true)"   )  
+						//genTimer( actor, state )
 					}
-					 transition( edgeName="goto",targetState="pathForContainer", cond=doswitch() )
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t35",targetState="move",cond=whenRequest("moveToDestination"))
 				}	 
-				state("pathForContainer") { //this:State
+				state("handle_deposit") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						request("findPath", "findPath($Container)" ,"pathfinder" )  
+						delay(500) 
+						answer("deposit", "depositDone", "depositDone(true)"   )  
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t32",targetState="loaddeposit",cond=whenReply("dopathdone"))
-				}	 
-				state("loaddeposit") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						delay(1000) 
-						println("Deposit Done")
-						emit("loaddeposit", "loaddeposit($Container,$Load)" ) 
-						stateTimer = TimerActor("timer_loaddeposit", 
-							scope, context!!, "local_tout_transporttrolley_loaddeposit", 5.toLong() )
-					}
-					 transition(edgeName="t43",targetState="findPathHome",cond=whenTimeout("local_tout_transporttrolley_loaddeposit"))   
-					transition(edgeName="t44",targetState="handleactivate",cond=whenRequest("activate"))
-				}	 
-				state("findPathHome") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						request("findPath", "findPath(home)" ,"pathfinder" )  
-					}
-					 transition(edgeName="t55",targetState="s0",cond=whenReply("dopathdone"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t46",targetState="move",cond=whenRequest("moveToDestination"))
 				}	 
 			}
 		}

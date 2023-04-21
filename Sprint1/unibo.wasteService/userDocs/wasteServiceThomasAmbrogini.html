@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+   
+   
+  	<link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+	<title>wasteService</title>
+		
+</head>
+    
+<body>
+	<div id="top">
+	<h1>LABORATORIO DI INGEGNERIA DEI SISTEMI SOFTWARE <font size="5"></font> </h1>
+	</div>  
+	
+	<div class="body"> 
+	<h2>Introduction</h2>
+	<div  class="remark">
+	Tema finale dell'esame di ingegneria dei sistemi software: WasteService
+	</div>
+	 
+	<h2>Requirements</h2>
+	
+	<div class="remark">
+	 
+	<p>A company intends to build a <span class="blue">WasteService</span> for the <em>separate collection of waste</em>,  composed of a set of elements:</p>
+	<ol class="arabic">
+		<li><p>a service area (rectangular, flat) that includes:</p>
+			<ul class="simple">
+				<li><p>an <span class="blue">INDOOR</span> port, to enter waste material</p></li>
+				<li><p>a <span class="blue">PlasticBox</span> container, devoted to store objects made of plastic, upto <strong>MAXPB</strong> kg of material.</p></li>
+				<li><p>a <span class="blue">GlassBox</span> container, devoted to store objects made of glass, upto <strong>MAXGB</strong> kg of material.</p></li>
+			</ul>
+			<p>The service area is free from internal obstacles, as shown in the following picture:</p>
+			<blockquote>
+			<div><a class="reference internal image-reference" href="img/WasteServiceRoom.PNG"><img alt="img/WasteServiceRoom.PNG" class="align-center" src="img/WasteServiceRoom.PNG" style="width: 60%;" /></a>
+			</div></blockquote>
+		</li>
+		<li><p>a DDR robot working as a <span class="blue">transport trolley</span>, that is intially situated in its <span class="blue">HOME</span> location.
+		The transport trolley has  the form of a square of side length <strong>RD</strong>.</p>
+		<p>The <cite>transport trolley</cite> is used to performa a <span class="blue">deposit action</span> that consists in the following phases:</p>
+		<ol class="arabic simple">
+		<li><p>pick up a waste-load from a <span class="blue">Waste truck</span> located on the <cite>INDOOR</cite></p></li>
+		<li><p>go from the <cite>INDOOR</cite> to the proper waste container</p></li>
+		<li><p>deposit the waste-load in the container</p></li>
+	</ol>
+	
+	<li><p>a <span class="blue">Service-manager</span> (an human being) which supervises the state of the service-area by using a
+	<span class="blue">WasteServiceStatusGUI</span>.</p></li>
+	<li><p>a <span class="blue">Sonar</span> and a <span class="blue">Led</span> connected to a RaspnerryPi. The <cite>Led</cite> is used as a <em>warning devices</em>,
+	according to the following scheme:</p>
+	<ul class="simple">
+	<li><p>the <cite>Led</cite> is <strong>off</strong> when the  <cite>transport trolley</cite> is at <cite>HOME</cite></p></li>
+	<li><p>the <cite>Led</cite> <strong>blinks</strong> while the <cite>transport trolley</cite> is moving</p></li>
+	<li><p>the <cite>Led</cite> is <strong>on</strong> when <cite>transport trolley</cite> is stopped.</p></li>
+	</ul>
+	<p>The <cite>Sonar</cite> is used as an alarm device: when it measures a distance less that a prefixed value <strong>DLIMT</strong>,
+	the <cite>transport trolley</cite> must be stopped.
+	It will be resumed when <cite>Sonar</cite> detects again a distance higher than  <strong>DLIMT</strong>.</p>
+	</li>
+	</ol>
+	<section id="tfrequirements">
+	<h2>TFRequirements</h2>
+	<p>The main goal of the <span class="blue">WasteService</span> software is to allow a <span class="blue">Waste truck</span> to deposit its load of
+	<strong>TruckLoad</strong> kg plastic or glass in the proper container.</p>
+	<p>The global story can be described as follows:</p>
+	<ol class="arabic simple">
+	<li><p>The <cite>Waste truck</cite> driver approaches the <cite>INDOOR</cite> and sends (using a smart device) a request to store the load,
+	by specifyng the <cite>type of  the material</cite> (plastic or glass) and its <cite>TruckLoad</cite>.</p></li>
+	<li><p>The <cite>WasteService</cite> sends the answer <em>loadaccept</em> if the final content of proper container will not surpass the
+	maximum value allowed (<em>MAXPB</em> or <em>MAXGB</em>). Otherwise, it sends the answer <em>loadrejecetd</em> and the  <cite>Waste truck</cite>
+	leaves the <cite>INDOOR</cite> area.</p></li>
+	<li><p>When the load is accepted, the <cite>transport trolley</cite> reaches the <cite>INDOOR</cite>, picks up the material, goes to the
+	proper container and settles the material. During this activity, the <cite>WasteService</cite> <strong>blinks</strong> the <cite>Led</cite></p></li>
+	<li><p>When the deposit action is terminated, the <cite>transport trolley</cite>  excutes another deposit command (if any)
+	or returns to its <cite>HOME</cite>.</p></li>
+	</ol>
+	<p>The <cite>WasteService</cite> must create a <span class="blue">WasteServiceStatusGUI</span> that shows to the <em>Service-manager</em>:</p>
+	<ul>
+	<li><p>the current state of the <cite>transport trolley</cite> and it position in the room</p></li>
+	<li><p>the current weigth of the material stored in the two waste-containers</p></li>
+	<li><p>the current state of the <cite>Led</cite></p>
+	
+	</li>
+	</ul>
+	
+	</div>
+	
+	 
+	
+	<h2>Requirement analysis</h2>
+	
+	<div class="remark">
+	<section id="requisiti-funzionali">
+		<h3>Requisiti funzionali<a class="headerlink" href="#requisiti-funzionali" title="Permalink to this headline">¶</a></h3>
+		
+		Requisiti riguardanti la funzionalità CORE del sistema
+		<ol class="arabic simple">
+			<li>
+				<p><em>Arrivo waste truck</em>: Un waste truck si reca nella posizione indoor ed invia una richiesta per il deposito di un certo mater materiale (glass or plastic) e il carico che vuole depositare.</p>	
+			</li>
+			<li>
+				<p><em>Accettato</em>: nel caso in cui il carico che si vuole depositare sommato al carico attuale dell'apposito container non ecceda una determinata soglia (PMAX or GMAX), wasteService invia la risposta loadaccepted .</p>	
+			</li>
+			<li>
+				<p><em>Respinto</em>: nel caso in cui il carico che si vuole depositare sommato al carico attuale dell'apposito container ecceda una determinata soglia (PMAX or GMAX), wasteService invia la risposta loadrejected ed il wasteTruck libera l'area di INDOOR .</p>	
+			</li>
+			<li>
+				<p><em>Ritiro</em>: Nel caso in cui la richiesta sia stata accettata, il trolley deve recarsi ad INDOOR per prelevare il carico. </p>
+			</li>
+			<li>
+				<p><em>Deposito</em>: Il trolley si reca all'apposito container per depositare il carico.</p>
+			</li>
+			<li>
+				<p><em>Fine deposito</em>: quando il trolley termina il deposito, nel caso in cui ci siano altre richieste accettate, il trolley ripete la fase RITIRO descritta precedentemente, in caso contrario torna alla posizione HOME.</p>
+			</li>
+		</ol>
+		
+		Requisiti riguardanti LED e SONAR
+		<ol class="arabic simple">
+			<li>
+				<p><em>Led Off</em>: nel caso in cui il trolley si trovi nella posizione HOME.</p>	
+			</li>
+			<li>
+				<p><em>Led Blinks</em>: mentre il trolley si sta muovendo.</p>	
+			</li>
+			<li>
+				<p><em>Led On</em>: quando il trolley è stoppato.</p>	
+			</li>
+			<li>
+				<p><em>Sonar</em>: nel caso in cui il sonar misuri una distanza minore di DLIMIT, il trolley deve essere stoppato. Verrà riattivato quando il sonar rileverà una distanza maggiore di DLIMIT </p>
+			</li>
+		</ol>
+		
+		Requisiti riguardanti GUI
+		<ol class="arabic simple">
+		All'interno della GUI devono essere visibili le seguenti informazioni:
+			<li>
+				<p><em>Trolley info</em>: stato attuale del trolley e posizione attuale.</p>	
+			</li>
+			<li>
+				<p><em>Peso container</em>: il peso corrente di ciascun container.</p>	
+			</li>
+			<li>
+				<p><em>Led info</em>: stato attuale del led.</p>	
+			</li>
+		</ol>
+		
+	<section id="requisiti-non-funzionali">
+		<h3>Requisiti non funzionali<a class="headerlink" href="#requisiti-funzionali" title="Permalink to this headline">¶</a></h3>
+		
+		<ol class="arabic simple">
+			<li>
+				<p><em>Posizione iniziale</em>: il trolley parte dalla posizione HOME.</p>	
+			</li>
+			<li>
+				<p><em>Lunghezza del trolley</em>: il trolley ha lunghezza di lato RD.</p>
+			</li>
+			<li>
+				<p><em>Proattività</em>: il trolley deve muoversi in modo autonomo fino a compimento del lavoro.</p>	
+			</li>
+			<li>
+				<p><em>Reattività</em>: il committente ha prospettato la possibilità che il trolley sospenda il lavoro
+				in caso di allarmi; in particolare, quando il sonar rileva una distanza minore di DLIMIT</p>
+			</li>
+			<li>
+				<p><em>Raspberry</em>: il LED ed il SONAR devono essere collegati ad un RaspberryPI</p>
+			</li>
+		</ol>
+	
+	<section id="punti-aperti">
+		<h3>Punti aperti<a class="headerlink" href="#requisiti-funzionali" title="Permalink to this headline">¶</a></h3>
+		
+		<ol class="arabic simple">
+			<li>
+				Momento nella quale incrementare il peso contenuto nei container. Potrebbe essere incrementato sia nel momento in cui
+				una richiesta viene accetata (loadaccepted), sia in seguito alla fase di RITIRO specificata nei requisiti funzionali, sia in seguito alla fase di FINE DEPOSITO.
+			</li>
+			<li>
+				Concorrenza dei truck.
+			</li>
+			<li>
+				In seguito a loadaccepted, il truck deposita il carico e se ne va immediatamente o aspetta l'arrivo del trolley per scaricare? Nel secondo caso si ha bisogno di notificare il 
+				truck quando il carico è stato preso dal trolley?
+			</li>
+			<li>
+				Come si vuole realizzata la visualizzazione della posizione corrente del trolley?
+			</li>
+			<li>
+				La mappa della stanza viene fornita?
+			</li>
+			<li>
+				Le coordinate di INDOOR, e dei container sono conosciute?
+			</li>
+		</ol>
+	
+	</div>
+	
+	<h2>Problem analysis</h2>
+	 
+	 <div class="remark">
+	 	<h3><p> Core Problem</p></h3>
+	 	Il problema principale del progetto consiste nel definire un percorso da un punto iniziale (da HOME nella fase di RITIRO, 
+	 	da INDOOR nella fase di DEPOSITO e da uno dei container in seguito ad un FINE DEPOSITO)
+	 	fino ad un punto obiettivo e verificare che il trolley segua il percorso prestabilito ed arrivi 
+	 	all'obiettivo prefissato (INDOOR nella fase di RITIRO, ai container nella fase di DEPOSITO ed HOME oppure INDOOR in FINE DEPOSITO).
+	 
+	 
+	 	<h3><p> Architettura #1</p></h3>
+	 	<img src="img/CORE1Image.jpg" alt="img">
+	 	<img src="img/DEVICES1Image.jpg" alt="img">
+		<img src="img/GUI1Image.jpg" alt="img">
+		
+		<br><br>
+		
+		I componenti presenti in questa architettura sono:
+		
+		<ol class="arabic simple">
+			<li>
+				<p><em>Waste Truck</em>: rappresenta il veicolo che porta la spazzatura e fa la richiesta per poterla depositare (dumpload).</p>	
+			</li>
+			<li>
+				<p><em>Waste Service</em>: rappresenta il componente che tiene traccia dei pesi correnti contenuti nei container ed accetta o rifiuta le richieste da parte dei Waste truck. 
+											Quando una richiesta viene accettata, invia un Dispatch al trolley per segnalare la presenza di carico da depositare nei container ed ha la responsabilità di aggiornare i pesi correnti ed invia un evento contenente come informazione i nuovi pesi.</p>
+			</li>
+			<li>
+				<p><em>Transport trolley</em>: rapprensenta il trolley. Emette due tipi di eventi: il primo, chiamato robotStatus, contiene l'informazione sullo stato attuale del robot che può essere in stato 'stopped' o in stato 'working', il secondo evento, position, rappresenta la posizione corrente del robot.
+												Quando il waste Service comunica al trolley che deve andare a depositare del carico, esso invia una richiesta ad un componente chiamato PathFinder che gli restituisce il percorso per arrivare all'obiettivo.</p>	
+			</li>
+			<li>
+				<p><em>Path Finder</em>: dato un punto di partenza ed un obiettivo, questo componente si occupa di trovare un percorso che congiunga i due punti. </p>
+			</li>
+			<li>
+				<p><em>Sonar Alarm</em>: si occupa di analizzare gli eventi emessi dal sonar con la distanza percepita e nel caso in cui la distanza sia minore di una certa
+										soglia DLIMIT si occupa di inviare un messaggio di dispatch al trolley per comunicargli di stopparsi. Nel caso in cui la distanza superi DLIMIT si occupa anche
+										di inviare un dispatch comunicando di riprendere l'esecuzione.</p>
+			</li>
+			<li>
+				<p><em>Sonar</em>: si occupa di emettere eventi con la distanza percepita. </p>
+			</li>
+			<li>
+				<p><em>Led</em>: esegue accendersi e spegnersi in seguito al contenuto dell'evento thrill. </p>
+			</li>
+			<li>
+				<p><em>Led Watcher</em>: si occupa di emettere eventi di tipo thrill che permettono di accendere/spegnere il led. Emette l'evento thrill dopo aver analizzato eventi di robotStatus e position per rispettare i requisiti funzionali riguardanti l'accensione del LED. </p>
+			</li>
+			<li>
+				<p><em>Gui</em>: si occupa di visualizzare le informazioni specificate nei requisiti che riceve tramite evento. </p>
+			</li>
+		</ol>
+		
+		
+		<h3><p> Architettura #2</p></h3>
+		<img src="img/CORE2Image.jpg" alt="img">
+		
+		<br><br>
+		
+		In questa seconda versione dell'architettura logica non si presuppone che il trolley conosca la sua posizione; quindi, quando il trolley effettua un movimento,
+		emette un evento che viene considerato dal componente chiamato RADAR, che aggiorna la posizione attuale del robot ed emette un evento con tale informazione.
+
+		<br><br>
+		<a href="../src/WasteService.qak" >Modello eseguibile</a>
+		<br>
+		
+		Prima versione del modello qak per mostrare alcune delle funzionalità di base in modo "mock".
+	
+		<h3><p> Alternative </p></h3>
+		<ol class="arabic simple">
+			<li>
+				Il messaggio di activate illustrato come Dispatch nell'architettura è stato scelto tenendo in considerazione il fatto che si ha un singolo transport trolley. Nel caso
+				ci sia la possibilità di trolley multipli si potrebbe realizzare come un evento ed i trolley potrebbero comunicare tra di loro per scegliere chi debba svolgere il compito attraverso
+				un algoritmo di coordinazione, in modo da avere una maggiore scalabilità nel momento in cui si aggiungano sempre più trolley.
+					
+			</li>
+			
+			<li>
+				Si è cercato di realizzare un'architettura dove i componenti non si conoscano uno con l'altro.
+			</li>
+		</ol>
+		
+		
+		
+		
+		<h3><p> Note importanti </p></h3>
+		<ol class="arabic simple">
+			
+			<li>
+				Considerando che non sono presenti ostacoli fissi all'interno del percorso del robot, una volta calcolato un determinato percorso si consiglia di 'salvarlo' in
+				modo da non doverlo ricalcolare ogni volta.
+			</li>
+			<li>
+				Disponendo di un mapper e di un path executor si consiglia il loro utilizzo per la realizzazione del path finder.
+			</li>
+			<li>
+				Disponendo di basicRobot22 si consiglia il suo utilizzo per la realizzazione del trolley.
+			</li>
+			<li>
+				Nel caso si abbia la necessità di costruire una mappa della stanza si consiglia di esaminare la larghezza di essa e poi la lunghezza dato che ci troviamo in una stanza rettangolare senza ostacoli.
+			</li>
+		</ol>
+	 	
+	 </div>
+	
+	<h2>Test plans</h2> 
+	
+	
+	<h2>Project</h2> 
+	 
+	</div>
+	
+	<h2>Testing</h2> 
+	 
+	
+	<h2>Deployment</h2> 
+	
+	 
+	<h2>Maintenance</h2> 
+	 
+	<!-- USEFUL
+	<table style="width:100%" border="1">
+	<tr>
+	<td style="width:50%">
+	</td>
+	<td></td>
+	</tr>
+	</table>
+	-->
+		      	
+	<br/><br/> 	
+	</div>  
+	
+	<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;color:white">
+	By Thomas Ambrogini email: thomas.ambrogini@studio.unibo.it  
+	<img src="./img/ThomasAmbrogini.jpg" alt="mbot" width="15%" height="15%">
+	</div> 
+</body>
+</html>

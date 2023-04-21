@@ -1,0 +1,17 @@
+{
+  "simulation"       : "true",
+  "sonarTimeout"      : "1000000",
+  "sonarEndless"	: "true" ,
+  "dLimit"		: "40",
+  "wasteServiceAddress" : "localhost" ,
+  "wasteServicePort" : "8033",
+
+  "not implemented" : "below",	
+  "webCam"           : "false",
+  "sonarObservable"  : "false",
+  "sonarDistanceMax" : "150",
+  "sonarDelay"       : "200",
+  "ledGui"           : "true",
+  "tracing"          : "false",
+  "testing"          : "false"
+}

@@ -14,6 +14,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 		return "s0"
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
 						lateinit var Material  : String
 						lateinit var TruckLoad : String ;
@@ -21,7 +22,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 				state("s0") { //this:State
 					action { //it:State
 						println("the wasteservice is waiting..")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t00",targetState="handlerequest",cond=whenRequest("depositrequest"))
 				}	 
 				state("handlerequest") { //this:State
@@ -40,7 +45,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 								 {answer("depositrequest", "loadrejected", "loadrejected($Material,$TruckLoad)"   )  
 								 }
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t01",targetState="handlepickupanswer",cond=whenReply("pickupanswer"))
 				}	 
 				state("handlepickupanswer") { //this:State
@@ -57,7 +66,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 								 answer("depositrequest", "loadrejected", "loadrejected($Material,$TruckLoad)"   )  
 								 }
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 				}	 
 			}
 		}

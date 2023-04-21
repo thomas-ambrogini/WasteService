@@ -1,0 +1,189 @@
+System rasp
+
+//TROLLEY
+Request  pickup         : pickup( ARG )
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  deposit        : deposit( ARG )
+Reply    depositDone    : depositDone( ARG )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Dispatch gocontainer        : gocontainer( PATH )
+//Reply    endDeposit       : endDeposit( TYPE)
+
+Event    loaddeposit        : loaddeposit( TYPE, LOAD )
+
+Request  findPath           : findPath( X_DESTINATION, Y_DESTINATION )
+Reply    path               : path( PATH )
+
+Request  dopath             : dopath( PATH  )
+Reply 	 dopathdone     : dopathdone( ARG ) 
+Reply 	 dopathfail     : dopathfail( ARG )
+
+
+//LED 
+Dispatch blink   : blink(_)
+Dispatch turnon  : turnon(_)
+Dispatch turnoff : turnoff(_)
+
+
+//SONAR
+Event distance : distance(DIST)
+Dispatch stop   : stop(_)
+Reply stopAck  : stopAck(_)
+Dispatch resume : resume(_)
+Reply   resumeAck : resumeAck(_)
+Dispatch stopPath : stopPath(_)
+Dispatch resumePath: resumePath(_)
+
+
+Dispatch coapUpdate : coapUpdate(RESOURCE, VALUE)
+
+Context ctx_transporttrolley ip [ host="127.0.0.1" port=8051 ]
+Context ctx_rasp 			 ip [ host="localhost" port=8056 ]
+
+
+ExternalQActor transporttrolley_mover context ctx_transporttrolley
+
+ 
+
+
+
+QActor led context ctx_rasp {
+	State start initial {
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State listen {
+		printCurrentMessage
+	}
+	Transition t0 whenMsg turnon  -> handle_on
+				  whenMsg turnoff -> handle_off
+				  whenMsg blink   -> handle_blink_on
+	
+	State handle_on {
+		printCurrentMessage
+		println("\tLed | On")
+		updateResource [# "on" #]
+	}
+	Goto listen
+	
+	State handle_off {
+		printCurrentMessage
+		println("\tLed | Off")
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State handle_blink_on {
+		printCurrentMessage
+		println("\tLed | Blink on")
+		updateResource [# "blink on" #]
+	}
+	Transition t0 whenTime 1000 -> handle_blink_off
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+					
+					
+	State handle_blink_off {
+		printCurrentMessage
+		println("\tLed | Blink off")
+		updateResource [# "blink off" #]
+	}
+	
+	Transition t0 whenTime 1000 -> handle_blink_on
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+}
+
+
+QActor alarmemitter context ctx_rasp {	
+	[# 
+	var DLIMIT = 100
+	var stopped = "False"
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	Transition t0 whenEvent distance -> handle_sonardata
+	
+	State handle_sonardata {
+		printCurrentMessage
+		
+		onMsg ( distance : distance (DIST) ) {
+			[# val dLimit = DLIMIT #]
+			[# val dist = payloadArg(0).toFloat() #]
+
+			if [# dist <= dLimit && stopped.equals("False")#] {
+				println("STOP")
+				[# stopped = "True" #]
+				forward transporttrolley_mover -m stop : stop(STOP)
+			}
+			if [# dist > dLimit && stopped.equals("True") #] {
+				println("RESUME")
+				[# stopped = "False" #]
+				forward transporttrolley_mover -m resume : resume(RESUME)
+			}
+		}
+	}
+	Transition t1	whenReply stopAck  -> handle_stop_ack
+					whenReply resumeAck -> handle_resume_ack
+					 
+					
+	State handle_stop_ack {
+		printCurrentMessage
+		println("Received the ACK for stopping")
+	}
+	
+	Goto s0
+	
+	State handle_resume_ack {
+		printCurrentMessage
+		println("Received the ACK for resume")
+	}
+	
+	Goto s0
+	
+}
+
+
+QActor sonar context ctx_rasp {	
+	State s0 initial {
+		printCurrentMessage
+		
+		//the component emits local events
+		emit distance : distance(1000)
+		updateResource [# "1000" #]	
+		delay 1000
+	}
+	Goto s0
+}
+
+QActor element context ctx_rasp {
+	State s0 initial {
+		printCurrentMessage
+		delay 20000
+	}
+	
+	Goto stop
+	
+	State stop {
+		printCurrentMessage
+		forward transporttrolley_mover -m stop : stop(STOP)
+		delay 10000
+	}
+	
+	Goto resume 
+	
+	State resume {
+		printCurrentMessage
+		forward transporttrolley_mover -m resume : resume(STOP)
+		delay 10000
+	}
+	Goto s0
+}
+

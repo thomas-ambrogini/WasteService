@@ -26,9 +26,9 @@ class Storage_manager ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( 
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t017",targetState="handleRequest",cond=whenRequest("storeRequest"))
-					transition(edgeName="t018",targetState="handleAsk",cond=whenRequest("storageAsk"))
-					transition(edgeName="t019",targetState="handleUpdate",cond=whenDispatch("updateWeights"))
+					 transition(edgeName="t00",targetState="handleRequest",cond=whenRequest("storeRequest"))
+					transition(edgeName="t01",targetState="handleAsk",cond=whenRequest("storageAsk"))
+					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("updateWeights"))
 				}	 
 				state("handleRequest") { //this:State
 					action { //it:State

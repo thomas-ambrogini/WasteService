@@ -58,7 +58,7 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 				state("handle_pickup") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						delay(500) 
+						delay(5000) 
 						answer("pickup", "pickupDone", "pickupDone(true)"   )  
 						//genTimer( actor, state )
 					}
@@ -70,7 +70,7 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 				state("handle_deposit") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						delay(500) 
+						delay(5000) 
 						answer("deposit", "depositDone", "depositDone(true)"   )  
 						//genTimer( actor, state )
 					}

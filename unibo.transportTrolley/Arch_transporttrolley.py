@@ -23,14 +23,11 @@ with Diagram('transporttrolleyArch', show=False, outformat='png', graph_attr=gra
           pathexec=Custom('pathexec(ext)','./qakicons/externalQActor.png')
      with Cluster('ctx_transporttrolley', graph_attr=nodeattr):
           transporttrolley=Custom('transporttrolley','./qakicons/symActorSmall.png')
-          ledcontroller=Custom('ledcontroller','./qakicons/symActorSmall.png')
           transporttrolley_mover=Custom('transporttrolley_mover','./qakicons/symActorSmall.png')
-     with Cluster('ctx_rasp', graph_attr=nodeattr):
-          led=Custom('led(ext)','./qakicons/externalQActor.png')
+          alarmemitter=Custom('alarmemitter','./qakicons/symActorSmall.png')
      transporttrolley >> Edge(color='magenta', style='solid', xlabel='findPath', fontcolor='magenta') >> transporttrolley_mover
-     transporttrolley_mover >> Edge(color='blue', style='solid', xlabel='coapUpdate', fontcolor='blue') >> ledcontroller
-     ledcontroller >> Edge(color='blue', style='solid', xlabel='turnon', fontcolor='blue') >> led
-     ledcontroller >> Edge(color='blue', style='solid', xlabel='turnoff', fontcolor='blue') >> led
-     ledcontroller >> Edge(color='blue', style='solid', xlabel='blink', fontcolor='blue') >> led
      transporttrolley_mover >> Edge(color='magenta', style='solid', xlabel='dopath', fontcolor='magenta') >> pathexec
+     sys >> Edge(color='red', style='dashed', xlabel='sonardata', fontcolor='red') >> alarmemitter
+     alarmemitter >> Edge(color='blue', style='solid', xlabel='stop', fontcolor='blue') >> transporttrolley_mover
+     alarmemitter >> Edge(color='blue', style='solid', xlabel='resume', fontcolor='blue') >> transporttrolley_mover
 diag

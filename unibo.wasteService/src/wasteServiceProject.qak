@@ -139,41 +139,6 @@ QActor transporttrolley context ctx_wasteservice {
 }
 
 
-QActor alarmemitter context ctx_wasteservice {	
-	[# 
-		var DLIMIT = 50
-		var stopped = "False"
-	#]
-	
-	State s0 initial {
-		printCurrentMessage
-	}
-	Transition t0 whenEvent sonardata -> handle_sonardata
-	
-	State handle_sonardata {
-		printCurrentMessage
-		
-		onMsg ( sonardata : distance (DIST) ) {
-			[# val dLimit = DLIMIT #]
-			[# val dist = payloadArg(0).toFloat() #]
-
-			if [# dist <= dLimit && stopped.equals("False")#] {
-				println("STOP")
-				[# stopped = "True" #]
-//				forward transporttrolley_mover -m stop : stop(STOP)
-			}
-			if [# dist > dLimit && stopped.equals("True") #] {
-				println("RESUME")
-				[# stopped = "False" #]
-//				forward transporttrolley_mover -m resume : resume(RESUME)
-			}
-		}
-	}
-	
-	Goto s0
-	
-}
-
 
 
 QActor transporttrolley_mover context ctx_wasteservice { 

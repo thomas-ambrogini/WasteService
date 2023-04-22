@@ -10,10 +10,10 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 
-hostAddress = "192.168.65.199"
-#hostAddress = "localhost"
+#hostAddress = "192.168.65.199"
+hostAddress = "192.168.1.7"
 
-port = 8055
+port = 8049
 
 
 def connect(p):
@@ -32,7 +32,7 @@ def console():
     mat = input()
     print("\nInserisci il peso del carico: ")
     qua = input()
-    storewaste = "msg(storewaste, request,smartdevice,wasteservice,storewaste(MAT,QUA),1)"
+    storewaste = "msg(storeload, request,smartdevice,wasteservice,storeload(MAT,QUA),1)"
     storewaste = storewaste.replace("MAT", mat)
     storewaste = storewaste.replace("QUA", qua)
     request(storewaste)

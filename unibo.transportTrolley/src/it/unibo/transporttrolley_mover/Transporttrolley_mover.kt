@@ -31,15 +31,28 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t08",targetState="findThePath",cond=whenRequest("findPath"))
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("idle") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						updateResourceRep( "trolleyState(idle)"  
+						)
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t07",targetState="stopped",cond=whenDispatch("stop"))
+					transition(edgeName="t08",targetState="findThePath",cond=whenRequest("findPath"))
 				}	 
 				state("findThePath") { //this:State
 					action { //it:State
+						updateResourceRep( "trolleyState(work)"  
+						)
 						
 									var MovesToDo = ""	
 						println("$name in ${currentState.stateName} | $currentMsg")
-						updateResourceRep( "trollyState(work)"  
-						)
 						if( checkMsgContent( Term.createTerm("findPath(X_DESTINATION,Y_DESTINATION)"), Term.createTerm("findPath(X_DESTINATION,Y_DESTINATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
@@ -70,8 +83,7 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t212",targetState="stopped",cond=whenDispatch("stop"))
-					transition(edgeName="t213",targetState="findThePath",cond=whenRequest("findPath"))
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("savepath") { //this:State
 					action { //it:State
@@ -93,14 +105,14 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						println("TROLLEY | STOPPED")
-						updateResourceRep( "trollyState(stopped)"  
+						updateResourceRep( "trolleyState(stopped)"  
 						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t714",targetState="handle_resume",cond=whenDispatch("resume"))
+					 transition(edgeName="t712",targetState="handle_resume",cond=whenDispatch("resume"))
 				}	 
 				state("handle_resume") { //this:State
 					action { //it:State
@@ -129,9 +141,9 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t215",targetState="stopped",cond=whenDispatch("stop"))
-					transition(edgeName="t216",targetState="pathDone",cond=whenReply("dopathdone"))
-					transition(edgeName="t217",targetState="handle_resume",cond=whenReply("dopathfail"))
+					 transition(edgeName="t213",targetState="stopped",cond=whenDispatch("stop"))
+					transition(edgeName="t214",targetState="pathDone",cond=whenReply("dopathdone"))
+					transition(edgeName="t215",targetState="handle_resume",cond=whenReply("dopathfail"))
 				}	 
 			}
 		}

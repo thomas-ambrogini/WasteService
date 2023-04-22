@@ -5,8 +5,8 @@
 FROM openjdk:12.0.2
 EXPOSE 8049
 ## ADD extracts the tar
-ADD ./build/distributions/unibo.wasteservice-1.0.tar /
-WORKDIR /unibo.wasteservice-1.0/bin
+ADD ./build/distributions/unibo.wasteservice-2.0.tar /
+WORKDIR /unibo.wasteservice-2.0/bin
 COPY ./*.pl ./
 COPY ./*.json ./
 ## COPY ./*.py ./

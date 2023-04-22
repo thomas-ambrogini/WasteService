@@ -27,6 +27,15 @@ class Sonarqak22 ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("idle") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t09",targetState="activateTheSonar",cond=whenDispatch("sonaractivate"))
 					transition(edgeName="t010",targetState="deactivateTheSonar",cond=whenDispatch("sonardeactivate"))
 				}	 
@@ -76,13 +85,13 @@ class Sonarqak22 ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 				}	 
 				state("end") { //this:State
 					action { //it:State
-						println("sonarqak22 BYE")
-						 System.exit(0)  
+						println("sonarqak22 Deactivated")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 			}
 		}

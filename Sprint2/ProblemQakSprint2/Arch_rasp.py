@@ -23,7 +23,6 @@ with Diagram('raspArch', show=False, outformat='png', graph_attr=graphattr) as d
           led=Custom('led','./qakicons/symActorSmall.png')
           sonarqak22=Custom('sonarqak22','./qakicons/symActorSmall.png')
           ledcontroller=Custom('ledcontroller','./qakicons/symActorSmall.png')
-          sonarmastermock=Custom('sonarmastermock','./qakicons/symActorSmall.png')
           sonarsimulator=Custom('sonarsimulator(coded)','./qakicons/codedQActor.png')
           sonardatasource=Custom('sonardatasource(coded)','./qakicons/codedQActor.png')
           datacleaner=Custom('datacleaner(coded)','./qakicons/codedQActor.png')
@@ -40,6 +39,4 @@ with Diagram('raspArch', show=False, outformat='png', graph_attr=graphattr) as d
      ledcontroller >> Edge(color='blue', style='solid', xlabel='turnon', fontcolor='blue') >> led
      ledcontroller >> Edge(color='blue', style='solid', xlabel='turnoff', fontcolor='blue') >> led
      ledcontroller >> Edge(color='blue', style='solid', xlabel='blink', fontcolor='blue') >> led
-     sonarmastermock >> Edge(color='blue', style='solid', xlabel='sonaractivate', fontcolor='blue') >> sonarqak22
-     sonarmastermock >> Edge(color='blue', style='solid', xlabel='sonardeactivate', fontcolor='blue') >> sonarqak22
 diag

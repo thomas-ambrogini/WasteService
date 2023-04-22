@@ -29,7 +29,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t020",targetState="handleTruck",cond=whenRequest("storeload"))
+					 transition(edgeName="t03",targetState="handleTruck",cond=whenRequest("storeload"))
 				}	 
 				state("handleTruck") { //this:State
 					action { //it:State
@@ -46,7 +46,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t121",targetState="handleStorageReply",cond=whenReply("storeRequestReply"))
+					 transition(edgeName="t14",targetState="handleStorageReply",cond=whenReply("storeRequestReply"))
 				}	 
 				state("handleStorageReply") { //this:State
 					action { //it:State
@@ -84,7 +84,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t222",targetState="handlepickup",cond=whenReply("destinationReached"))
+					 transition(edgeName="t25",targetState="handlepickup",cond=whenReply("destinationReached"))
 				}	 
 				state("handlepickup") { //this:State
 					action { //it:State
@@ -97,7 +97,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t1123",targetState="handle_pickupDone",cond=whenReply("pickupDone"))
+					 transition(edgeName="t116",targetState="handle_pickupDone",cond=whenReply("pickupDone"))
 				}	 
 				state("handle_pickupDone") { //this:State
 					action { //it:State
@@ -121,7 +121,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t424",targetState="handleDeposit",cond=whenReply("destinationReached"))
+					 transition(edgeName="t47",targetState="handleDeposit",cond=whenReply("destinationReached"))
 				}	 
 				state("handleDeposit") { //this:State
 					action { //it:State
@@ -134,7 +134,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t1125",targetState="handle_depositDone",cond=whenReply("depositDone"))
+					 transition(edgeName="t118",targetState="handle_depositDone",cond=whenReply("depositDone"))
 				}	 
 				state("handle_depositDone") { //this:State
 					action { //it:State
@@ -147,8 +147,8 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 				 	 		stateTimer = TimerActor("timer_handle_depositDone", 
 				 	 					  scope, context!!, "local_tout_wasteservice_handle_depositDone", 10.toLong() )
 					}	 	 
-					 transition(edgeName="t526",targetState="moveTrolleyHome",cond=whenTimeout("local_tout_wasteservice_handle_depositDone"))   
-					transition(edgeName="t527",targetState="handleTruck",cond=whenRequest("storeload"))
+					 transition(edgeName="t59",targetState="moveTrolleyHome",cond=whenTimeout("local_tout_wasteservice_handle_depositDone"))   
+					transition(edgeName="t510",targetState="handleTruck",cond=whenRequest("storeload"))
 				}	 
 				state("moveTrolleyHome") { //this:State
 					action { //it:State
@@ -162,7 +162,7 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t1228",targetState="s0",cond=whenReply("destinationReached"))
+					 transition(edgeName="t1211",targetState="s0",cond=whenReply("destinationReached"))
 				}	 
 			}
 		}

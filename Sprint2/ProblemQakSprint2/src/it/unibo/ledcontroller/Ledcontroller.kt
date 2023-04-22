@@ -24,7 +24,7 @@ class Ledcontroller ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
-						coapObserverUtil.startObservingHost(myself ,"$Host:8049", "ctx_wasteservice/transporttrolley_mover" )
+						coapObserverUtil.startObservingHost(myself ,"$Host:8051", "ctx_transporttrolley/transporttrolley_mover" )
 						coapObserverUtil.startObservingHost(myself ,"$Host:8049", "ctx_wasteservice/wasteservice" )
 						//genTimer( actor, state )
 					}
@@ -51,7 +51,7 @@ class Ledcontroller ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 								 
 												var NextLedState 	= "" 
 								println("Led Controller | Received update from ${payloadArg(0)}, is ${payloadArg(1)} ; currently AtHome $AtHome Stopped $Stopped CurrentState $CurrentLedState")
-								if(  payloadArg(0) == "ctx_wasteservice_transporttrolley_mover"  
+								if(  payloadArg(0) == "ctx_transporttrolley_transporttrolley_mover"  
 								 ){ 
 													State   = PayloadUtils.getTrolleyState(payloadArg(1))
 													Stopped = State == "stopped" 

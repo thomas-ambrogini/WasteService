@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -67,8 +67,20 @@
         <div class="card-header px-1">Reply:</div>
         <div class="card-content px-1">
                 <div class="card-content px-1">
-                    <span id="reply" >...</span>
+                    <span th:text="${reply}" id="reply"  >...</span>
                 </div>
+        </div>
+    </div>
+
+    <br>
+
+    <!-- PickedUpDisplay -->
+    <div class="card iss-bg-pathexecarea text-dark">
+        <div class="card-header px-1">Load State:</div>
+        <div class="card-content px-1">
+            <div class="card-content px-1">
+                <span th:text="${reply}" id="loadState"  >...</span>
+            </div>
         </div>
     </div>
 </div>

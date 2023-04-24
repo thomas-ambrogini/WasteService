@@ -18,7 +18,7 @@ Event    sonardata       : distance( V )   //for the application level
 Dispatch coapUpdate : coapUpdate(RESOURCE, VALUE)
 
 
-Context ctx_transporttrolley     ip [ host="transporttrolley" port=8049 ]
+Context ctx_transporttrolley     ip [ host="transporttrolley" port=8051 ]
 Context ctx_rasp 			 	 ip [ host="localhost" port=8056 ]
  
 

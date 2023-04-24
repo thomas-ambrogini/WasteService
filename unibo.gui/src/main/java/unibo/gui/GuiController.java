@@ -61,6 +61,7 @@ public class GuiController {
     }
 
     public static void sendMsg(String sonarName, String cmd){
+
         Interaction2021 connToSonar = null;
 
         try {
@@ -84,7 +85,7 @@ public class GuiController {
 
             connToSonar.close();
         } catch (Exception e) {
-            ColorsOut.outerr("RobotUtils | sendMsg on:" + connToSonar + " ERROR:"+e.getMessage());
+            ColorsOut.outerr("SonarUtils | sendMsg on:" + connToSonar + " ERROR:"+e.getMessage());
         }
 
 

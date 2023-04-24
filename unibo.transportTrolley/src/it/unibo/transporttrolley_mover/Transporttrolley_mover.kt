@@ -93,6 +93,7 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 								
 												RemainingPath = payloadArg(0)
 						}
+						emit("alarm", "alarm(STOP)" ) 
 						println("TROLLEY | SAVE PATH: $RemainingPath")
 						//genTimer( actor, state )
 					}

@@ -153,6 +153,7 @@ QActor transporttrolley_mover context ctx_transporttrolley {
 				RemainingPath = payloadArg(0)
 			#]	
 		}
+		emit alarm : alarm(STOP)
 		println("TROLLEY | SAVE PATH: $RemainingPath")
 	}
 	
@@ -204,7 +205,7 @@ QActor transporttrolley_mover context ctx_transporttrolley {
 QActor alarmemitter context ctx_transporttrolley {	
 	
 	[# 
-		var DLIMIT = 50
+		var DLIMIT = 20
 		var stopped = "False"
 	#]
 	

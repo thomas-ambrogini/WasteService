@@ -23,8 +23,7 @@ function connect() {
     socket = new WebSocket(addr);
 
     socket.onopen = function (event) {
-        //console.log("Connected to " + addr);
-        setMessageToWindow(infoDisplay, "Connected to " + addr);
+        console.log("Connected WebSocket to " + addr);
     };
 
     socket.onmessage = function (event) {
@@ -41,17 +40,20 @@ function connect() {
 
 function handlePayload(msg) {
     payload = msg.substring(msg.indexOf('(') + 1, msg.indexOf(')'))
-    if (msg.includes("trolleyState")) setMessageToWindow(trolleyStateDisplay, payload);
-    else if (msg.includes("ledState")) setMessageToWindow(ledStateDisplay, payload);
-    else if (msg.includes("trolleyPosition")) setMessageToWindow(trolleyPositionDisplay, payload);
-    else if (msg.includes("glass")) {
-        setMessageToWindow(glassBoxDisplay, payload);
-        payload_plastic = msg.substring(msg.indexOf(')') + 1)
-        payload_plastic = payload_plastic.substring(payload_plastic.indexOf('(') + 1, payload_plastic.indexOf(')'))
-        setMessageToWindow(plasticBoxDisplay, payload_plastic);
-    }
-
+    console.log(payload)
+    if (msg.includes("reply")) setMessageToWindow(replyDisplay, payload);
+    else if (msg.includes("loadState")) setMessageToWindow(loadStateDisplay, payload);
 
 }
+
+function request (type, quantity) {
+    var message = type + "," + quantity
+    socket.send(message)
+}
+
+
+$(function () {
+    $( "#depositButton").click(function () { request(typeSelect.value, quantityText.value)})
+});
 
 

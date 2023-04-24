@@ -4,9 +4,10 @@ import java.io.FileNotFoundException
 
 object DomainSystemConfig {
 
-     private var simulation : Boolean = true
-     private var sonarTimeout : Long = 10000
-	   private var sonarEndless : Boolean = true
+    private var simulation : Boolean = true
+    private var sonarTimeout : Long = 10000
+    private var sonarEndless : Boolean = true
+
     init {
 
 

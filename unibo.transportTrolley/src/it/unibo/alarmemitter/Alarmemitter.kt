@@ -16,7 +16,7 @@ class Alarmemitter ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		val interruptedStateTransitions = mutableListOf<Transition>()
 		 
-				var DLIMIT = 50
+				var DLIMIT = 20
 				var stopped = "False"
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State

@@ -787,7 +787,7 @@
 	 	
 	 	<h3> Modello eseguibile analisi del Problema </h3>
 	
-		<a href="../src/WasteServiceAnalisiProblemaAmbrogini.qak" >Modello Analisi del problema</a>
+		<a href="../src/WasteServiceAnalisiProblemaAmbrogini.qakt" >Modello Analisi del problema</a>
 	<br>
 	 	
 	 	
@@ -852,6 +852,8 @@
 			
 		</ul>
 		
+		<br><br>
+		
 		<b>Test Update Weigths</b><br>
 		<a href="../test/it/unibo/wasteservice/TestUpdateWeights.java" >Test Update Weights</a> <br>
 		
@@ -906,11 +908,14 @@
 	Il primo compito che l'handler deve eseguire è quello di interagire con il WasteTruck, realizzandolo, a questo punto, come
 	un vero e proprio "alieno" e non un attore come veniva mostrato in analisi per scopi prototipali.
 	Verrà realizzata un interfaccia Web per il WasteTruck per comunicare con il WasteServiceHandler attraverso
-	API Rest.
+	WebSocket.
+	<br>
+	<a href="../../truckGui/unibo.wasteservice/src/main/resources/templates/truck.html" > Interfaccia per il truck driver</a> 
+	<br>
 	<br>
 	Successivamente l'handler dovrà interagire con il nuovo componente introdotto: StorageManager, per potersi
 	assicurare che ci sia lo spazio nei container per poter depositare i materiali.
-	Per fare questo, non essendo un attore il componente handler, agirà a sua volta da alieno nei confronti
+	Per fare questo, non essendo un attore, il componente handler agirà a sua volta da alieno nei confronti
 	del contesto QAK.
 	In seguito alla risposta dello storageManager, l'handler andrà ad inviare loadaccepted o loadrejected
 	al wasteTruck.
@@ -922,14 +927,13 @@
 	questa comunicazione verrà realizzata come una request/reply. 
 	<br>
 	
-	<pre><key2>Request</key2> startDeposit : startDeposit(_) <br><key2>Reply</key2> pickedUp : pickedUp(_)</pre>
+	<pre><key2>Request</key2> startDeposit : startDeposit( TYPE ) <br><key2>Reply</key2> leaveIndoor : leaveIndoor(_)</pre>
 	
 	<br>
-	Quando l'handler deve avviare la fase di deposito invia il messaggio di startDeposito al componente
+	Quando l'handler deve avviare la fase di deposito invia il messaggio di startDeposit al componente
 	Core e quando il trolley ha effettivamente ritirato i materiali da Indoor il componente Core invia
-	la reply pickedUp all'handler, che si occuperà di inviare il messaggio mostrato in analisi del problema:
-	"LeaveIndoor" per poter segnalare al truck di liberare l'area di scarico, in modo da poter accettare
-	nuove richieste.
+	la reply leaveIndoor all'handler, che in analisi del problema era stato mostrato come Dispatch, ora 
+	diventa una reply.
 	
 	
 	
@@ -944,7 +948,7 @@
 	
 	<br>
 	Al termine dell'azione di pickup da parte del Trolley, il Core invierà la reply introdotta 
-	precedentemente: "pickedUp" all'handler, in modo da poter liberare l'area di deposito.
+	precedentemente: "leaveIndoor" all'handler, in modo da poter liberare l'area di deposito.
 	
 	
 	<h4> StorageManager </h4>
@@ -1022,17 +1026,33 @@
 	</ul>
 	
 	
+	<h3> Sprint Review </h3>
+	In seguito a determinate considerazioni si è deciso di unificare il PathFinder introdotto in analisi
+	del problema con il TransportTrolleyMover mostrato in Progettazione.
 	
+	
+	<h3>Architettura finale</h3>
+	<a href="../src/wasteServiceArchSprint1.qakt" >Modello eseguibile</a>
+	<br>
+	<img src="img/wasteserviceSprint1arch.png" alt="img"> <br>
 	
 	</div>
 	
-	<h2>Testing</h2> 
-	 
+	<h2>Testing</h2>
+	<div class="remark">
+	Sono stati adattati i test plan mostrati precedentemente in base alle modifiche effettuate al sistema.
+	</div>
 	
-	<h2>Deployment</h2> 
+	<h2>Deployment</h2>
+	<div class="remark">
+	Per eseguire il deployment si è utilizzato docker e si sono separate le immagini dei vari componenti.
+	<br>
+	<a href="../wasteserviceSprint1.yaml" >File docker compose per eseguire il sistema</a>
+	<br>
 	
-	 
-	<h2>Maintenance</h2> 
+	Viene anche fornito un ambiente virtuale nella quale è possibile osservare il robot muoversi. <br>
+	Questo software era già disponibile alla software house tramite il progetto: virtualrobot2020.
+	 </div>
 	 
 	<!-- USEFUL
 	<table style="width:100%" border="1">

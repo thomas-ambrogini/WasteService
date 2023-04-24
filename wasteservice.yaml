@@ -17,8 +17,10 @@ services:
   wasteservice:
     image: thomasambrogini/wasteservice:2.0
     ports:
-      - 192.168.1.7:8049:8049/udp
-      - 192.168.1.7:8049:8049/tcp
+      #- 192.168.1.7:8049:8049/udp
+        #- 192.168.1.7:8049:8049/tcp
+      - 8049:8049/udp
+      - 8049:8049/tcp
     depends_on:
       - robot
   transporttrolley:
@@ -36,8 +38,13 @@ services:
       #      - 192.168.1.7:8085:8085/tcp
       - 8085:8085
         #      - 192.168.1.7:8085:8085
-
-
+  
+  truck_gui:
+    image: thomasambrogini/truck_gui:1.0
+    ports:
+      - 8080:8080
+    depends_on:
+      - wasteservice
 ## -------------------------------------------------------------
 ## TODO See https://docs.docker.com/compose/startup-order/
 ## -------------------------------------------------------------

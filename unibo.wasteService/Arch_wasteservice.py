@@ -24,7 +24,6 @@ with Diagram('wasteserviceArch', show=False, outformat='png', graph_attr=graphat
      with Cluster('ctx_wasteservice', graph_attr=nodeattr):
           storage_manager=Custom('storage_manager','./qakicons/symActorSmall.png')
           wasteservice=Custom('wasteservice','./qakicons/symActorSmall.png')
-     wasteservice >> Edge(color='magenta', style='solid', xlabel='storeRequest', fontcolor='magenta') >> storage_manager
      wasteservice >> Edge(color='magenta', style='solid', xlabel='moveToDestination', fontcolor='magenta') >> transporttrolley
      wasteservice >> Edge(color='magenta', style='solid', xlabel='pickup', fontcolor='magenta') >> transporttrolley
      wasteservice >> Edge(color='magenta', style='solid', xlabel='deposit', fontcolor='magenta') >> transporttrolley

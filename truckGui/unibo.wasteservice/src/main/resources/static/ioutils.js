@@ -6,6 +6,7 @@ const typeSelect              = document.getElementById("type")
 const quantityText            = document.getElementById("quantity")
 
 const replyDisplay            = document.getElementById("reply")
+const loadStateDisplay            = document.getElementById("loadState")
 
 
 function setMessageToWindow(outfield, message) {
@@ -13,9 +14,9 @@ function setMessageToWindow(outfield, message) {
     outfield.innerHTML = `<tt>${output}</tt>`
 }
 
-$(function () {
-    $( "#depositButton").click(function () { callServerUsingAjax(typeSelect.value, quantityText.value)})
-});
+// $(function () {
+//     $( "#depositButton").click(function () { callServerUsingAjax(typeSelect.value, quantityText.value)})
+// });
 
 function callServerUsingAjax(type, quantity) {
     //alert("callServerUsingAjax "+message)

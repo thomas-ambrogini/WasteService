@@ -1,20 +1,14 @@
 System transporttrolley
 
-//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
-
-Request  pickup         : pickup( ARG )
-Reply    pickupDone     : pickupDone( ARG )
-
-Request  deposit        : deposit( ARG )
-Reply    depositDone    : depositDone( ARG )
-
+Request  pickup         	: pickup( ARG )
+Reply    pickupDone     	: pickupDone( ARG )
+Request  deposit        	: deposit( ARG )
+Reply    depositDone    	: depositDone( ARG )
 Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
 Reply    destinationReached : destinationReached( ARG )
 
-Dispatch gocontainer        : gocontainer( PATH )
-//Reply    endDeposit       : endDeposit( TYPE)
-
-Event    loaddeposit        : loaddeposit( TYPE, LOAD )
+Request trolleyRotate : trolleyRotate(DIR)
+Reply   rotateDone    : rotateDone(_)
 
 Request  findPath           : findPath( X_DESTINATION, Y_DESTINATION )
 Reply    path               : path( PATH )
@@ -23,30 +17,40 @@ Request  dopath             : dopath( PATH  )
 Reply 	 dopathdone     : dopathdone( ARG ) 
 Reply 	 dopathfail     : dopathfail( ARG )
 
-Context ctx_basicrobot 				  ip [ host="127.0.0.1" port=8020 ]  
+//SONAR
+Dispatch stop  	 	: stop(_)
+Dispatch resume 	: resume(_)
+Event 	 alarm 		: alarm(STOP)
+Event    sonardata  : distance( V )   
+
+ 
+
+Context ctx_basicrobot 				  ip [ host="robot" port=8020 ]
 Context ctx_transporttrolley	      ip [ host="localhost" port=8051 ]
+
 
 ExternalQActor pathexec context ctx_basicrobot
 
-
 QActor transporttrolley context ctx_transporttrolley {
-
+	
 	State s0 initial {
 		printCurrentMessage	
 	}
 	
 	Transition t0 whenRequest moveToDestination -> move
+				  whenRequest trolleyRotate     -> rotate
 	
 	State move {
 		printCurrentMessage
 		updateResource [# "work" #]
 		
 		onMsg( moveToDestination : info( X_DESTINATION, Y_DESTINATION )) {
-			request pathfinder -m findPath : findPath( $payloadArg(0), $payloadArg(1) )
+			
+			request transporttrolley_mover -m findPath : findPath( $payloadArg(0), $payloadArg(1) )
 		}
 	}
 	
-	Transition t1 whenReply dopathdone -> destinationReached
+	Transition t1 	whenReply dopathdone -> destinationReached
 	
 	State destinationReached {
 		printCurrentMessage
@@ -56,11 +60,12 @@ QActor transporttrolley context ctx_transporttrolley {
 	Transition t2 whenRequest pickup -> handle_pickup
 				  whenRequest deposit -> handle_deposit
 				  whenRequest moveToDestination -> move
+				  whenRequest trolleyRotate -> rotate
 	
 	
 	State handle_pickup {
 		printCurrentMessage
-		delay 500
+		delay 5000
 		replyTo pickup with pickupDone : pickupDone(true)
 	}
 	
@@ -69,18 +74,41 @@ QActor transporttrolley context ctx_transporttrolley {
 	
 	State handle_deposit {
 		printCurrentMessage
-		delay 500
+		delay 5000
 		replyTo deposit with depositDone : depositDone(true)
 	}
 	
-	Transition t4 whenRequest moveToDestination -> move
+	Transition t4 	whenRequest moveToDestination -> move
 	
+	State rotate {
+		printCurrentMessage
+		onMsg ( trolleyRotate : trolleyRotate(DIR)){
+			
+			[#
+				val Dir = payloadArg(0)	
+			#]
+			request transporttrolley_mover -m trolleyRotate : trolleyRotate($Dir)
+		}
+	}
+	
+	Transition t5 whenReply rotateDone -> rotateDone
+	
+	State rotateDone {
+		replyTo trolleyRotate with rotateDone : rotateDone(OK)
+	}
+	Goto s0
+
 }
 
-QActor pathfinder context ctx_transporttrolley { 
 
+
+QActor transporttrolley_mover context ctx_transporttrolley { 
+	[#
+		var RemainingPath = ""
+	#] 
 	
 	State s0 initial {
+		
 		printCurrentMessage
 		[# 
 			unibo.kotlin.planner22Util.initAI();
@@ -90,9 +118,20 @@ QActor pathfinder context ctx_transporttrolley {
 		#]	
 	}
 	
-	Transition t0 whenRequest findPath -> findThePath
+	Goto idle
+	
+	State idle {
+		printCurrentMessage
+		updateResource [# "trolleyState(idle)" #]
+		
+	}
+	
+	Transition t0 	whenMsg     stop     -> stopped
+					whenRequest findPath -> findThePath
+				    whenRequest trolleyRotate -> rotate
 	
 	State findThePath {
+		updateResource [# "trolleyState(work)" #]
 		[#
 			var MovesToDo = ""	
 		#]
@@ -114,8 +153,9 @@ QActor pathfinder context ctx_transporttrolley {
 			
 	}
 	
-	Transition t1 	whenReply dopathdone -> pathDone
-					whenReply dopathfail -> pathFail
+	Transition t1 	whenMsg   stop       -> alarm
+					whenReply dopathdone -> pathDone
+					whenReply dopathfail -> handle_resume
 					
 	
 	State pathDone {
@@ -124,14 +164,124 @@ QActor pathfinder context ctx_transporttrolley {
 		replyTo findPath with dopathdone : dopathdone(ok)
 	}
 	
-	Transition t2 whenRequest findPath -> findThePath
+
+	Goto idle
 	
-	State pathFail {
+	State alarm {
 		printCurrentMessage
-		println("PATH FAILED")
+		emit alarm : alarm(STOP)
 	}
+	Transition t6   whenTime 1000 -> stopped
+					whenReply dopathdone -> stopped
+					whenReply dopathfail -> savepath
+	
+	State savepath {
+		printCurrentMessage
+		onMsg(dopathfail: dopathfail(PATH)){
+			[#
+				RemainingPath = payloadArg(0)
+			#]	
+		}
+		
+		println("TROLLEY | SAVE PATH: $RemainingPath")
+	}
+	
+	Goto stopped
+					
+	State stopped {
+		printCurrentMessage
+		println("TROLLEY | STOPPED")
+		updateResource [# "trolleyState(stopped)" #]
+	}
+	
+	Transition t7 whenMsg resume -> handle_resume
+	
+	State handle_resume {
+		printCurrentMessage
+		updateResource [# "trolleyState(work)" #]
+		
+		onMsg(resume : resume(STATE)){
+			
+			request pathexec -m dopath : dopath($RemainingPath) 
+			
+			[# RemainingPath = "" #]
+		}
+
+		
+		onMsg (dopathfail   : dopathfail( ARG )) {
+			[#
+				var RemainingPath = payloadArg(0)
+			#]
+			if [# RemainingPath.length == 1 || RemainingPath.length == 0#]{
+				[# RemainingPath = "" #]
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+			else{
+				request pathexec -m dopath : dopath($RemainingPath) 
+			}
+		}
+
+	}
+	
+	Transition t2 whenTime 5000 -> idle
+				  whenMsg stop -> stopped
+				  whenReply dopathdone -> pathDone
+				  whenReply dopathfail -> handle_resume
+	
+	State rotate {
+		printCurrentMessage
+		onMsg ( trolleyRotate : trolleyRotate(DIR)){
+			[#
+				val Path = pathut.getRotation(payloadArg(0))
+				pathut.setPath(Path)
+				pathut.updateMap()
+			#]
+			request pathexec -m dopath : dopath($Path)
+		}
+	}
+	
+	Transition t5 whenReply dopathdone -> rotateDone
+			      whenReply dopathfail -> handle_resume
+	
+	State rotateDone {
+		replyTo trolleyRotate with rotateDone : rotateDone(OK)
+	}
+	Goto idle
 
 }
 
+QActor alarmemitter context ctx_transporttrolley {	
+	
+	[# 
+		var DLIMIT = 20
+		var stopped = "False"
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	Transition t0 whenEvent sonardata -> handle_sonardata
+	
+	State handle_sonardata {
+		printCurrentMessage
+		
+		onMsg ( sonardata : distance (DIST) ) {
+			[# val dLimit = DLIMIT #]
+			[# val dist = payloadArg(0).toFloat() #]
 
-
+			if [# dist <= dLimit && stopped.equals("False")#] {
+				println("STOP")
+				[# stopped = "True" #]
+				forward transporttrolley_mover -m stop : stop(STOP)
+			}
+			if [# dist > dLimit && stopped.equals("True") #] {
+				println("RESUME")
+				[# stopped = "False" #]
+				forward transporttrolley_mover -m resume : resume(RESUME)
+			}
+		}
+	}
+	
+	Goto s0
+	
+}

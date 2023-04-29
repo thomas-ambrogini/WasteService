@@ -25,6 +25,7 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t00",targetState="move",cond=whenRequest("moveToDestination"))
+					transition(edgeName="t01",targetState="rotate",cond=whenRequest("trolleyRotate"))
 				}	 
 				state("move") { //this:State
 					action { //it:State
@@ -40,7 +41,7 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t11",targetState="destinationReached",cond=whenReply("dopathdone"))
+					 transition(edgeName="t12",targetState="destinationReached",cond=whenReply("dopathdone"))
 				}	 
 				state("destinationReached") { //this:State
 					action { //it:State
@@ -51,9 +52,10 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t22",targetState="handle_pickup",cond=whenRequest("pickup"))
-					transition(edgeName="t23",targetState="handle_deposit",cond=whenRequest("deposit"))
-					transition(edgeName="t24",targetState="move",cond=whenRequest("moveToDestination"))
+					 transition(edgeName="t23",targetState="handle_pickup",cond=whenRequest("pickup"))
+					transition(edgeName="t24",targetState="handle_deposit",cond=whenRequest("deposit"))
+					transition(edgeName="t25",targetState="move",cond=whenRequest("moveToDestination"))
+					transition(edgeName="t26",targetState="rotate",cond=whenRequest("trolleyRotate"))
 				}	 
 				state("handle_pickup") { //this:State
 					action { //it:State
@@ -65,7 +67,7 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t35",targetState="move",cond=whenRequest("moveToDestination"))
+					 transition(edgeName="t37",targetState="move",cond=whenRequest("moveToDestination"))
 				}	 
 				state("handle_deposit") { //this:State
 					action { //it:State
@@ -77,7 +79,33 @@ class Transporttrolley ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t46",targetState="move",cond=whenRequest("moveToDestination"))
+					 transition(edgeName="t48",targetState="move",cond=whenRequest("moveToDestination"))
+				}	 
+				state("rotate") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("trolleyRotate(DIR)"), Term.createTerm("trolleyRotate(DIR)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												val Dir = payloadArg(0)	
+								request("trolleyRotate", "trolleyRotate($Dir)" ,"transporttrolley_mover" )  
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t59",targetState="rotateDone",cond=whenReply("rotateDone"))
+				}	 
+				state("rotateDone") { //this:State
+					action { //it:State
+						answer("trolleyRotate", "rotateDone", "rotateDone(OK)"   )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 			}
 		}

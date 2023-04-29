@@ -1,0 +1,197 @@
+System rasp
+
+//LED 
+Dispatch blink   : blink(_)
+Dispatch turnon  : turnon(_)
+Dispatch turnoff : turnoff(_)
+
+ 
+//SONAR
+Event    sonar           : distance( V )  
+Event    sonardata       : distance( V )
+
+Dispatch coapUpdate : coapUpdate(RESOURCE, VALUE)
+
+Context ctx_transporttrolley ip [ host="transporttrolley" port=8051 ]
+Context ctx_rasp 			 ip [ host="localhost" port=8056 ]
+
+ExternalQActor transporttrolley_mover context ctx_transporttrolley
+
+QActor led context ctx_rasp {
+	State start initial {
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State listen {
+		printCurrentMessage
+	}
+	Transition t0 whenMsg turnon  -> handle_on
+				  whenMsg turnoff -> handle_off
+				  whenMsg blink   -> handle_blink_on
+	
+	State handle_on {
+		printCurrentMessage
+		println("\tLed | On")
+		updateResource [# "on" #]
+	}
+	Goto listen
+	
+	State handle_off {
+		printCurrentMessage
+		println("\tLed | Off")
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State handle_blink_on {
+		printCurrentMessage
+		println("\tLed | Blink on")
+		updateResource [# "blink on" #]
+	}
+	Transition t0 whenTime 1000 -> handle_blink_off
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+					
+					
+	State handle_blink_off {
+		printCurrentMessage
+		println("\tLed | Blink off")
+		updateResource [# "blink off" #]
+	}
+	
+	Transition t0 whenTime 1000 -> handle_blink_on
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+}
+
+
+QActor ledcontroller context ctx_rasp {
+	[#
+		var AtHome = true
+		var Stopped = false
+		var CurrentLedState = "off"
+		var State   = ""
+	#]
+	
+	State init initial {
+		qrun coapObserverUtil.observe(myself, "transporttrolley:8051", "ctx_transporttrolley/transporttrolley_mover")
+		qrun coapObserverUtil.observe(myself, "localhost:8049", "ctx_wasteservice/wasteservice")
+	}
+	Goto observe
+	
+	State observe {
+		printCurrentMessage
+	}	
+	Transition t0 whenMsg coapUpdate -> handleStatus
+
+ 	
+	State handleStatus {
+		printCurrentMessage
+		
+		onMsg ( coapUpdate : coapUpdate(RESOURCE, VALUE) ) {
+			[# 
+				var NextLedState 	= "" 
+			#]
+			
+			println("Led Controller | Received update from ${payloadArg(0)}, is ${payloadArg(1)} ; currently AtHome $AtHome Stopped $Stopped CurrentState $CurrentLedState")
+			
+
+			
+			if [# payloadArg(0) == "ctx_transporttrolley_transporttrolley_mover" #] {
+				
+				// trolleyState(work|stopped|idle)
+				
+				[# 
+					State   = PayloadUtils.getTrolleyState(payloadArg(1))
+					Stopped = State == "stopped" 
+				#]
+				
+				if [# Stopped #] {
+					[# 
+						NextLedState = "on"
+					#]
+				} else {
+					if [# State == "work" #] {
+						[# NextLedState = "blinking" #]
+					} else {
+						[# NextLedState = "off" #]
+					}
+				}
+			}
+			
+			if [# payloadArg(0) == "ctx_wasteservice_wasteservice" #] {
+				
+				[# AtHome = PayloadUtils.getTrolleyPosition(payloadArg(1)) == "home" #]
+				if [# !Stopped #] {
+					if [# AtHome || State == "idle"#] {
+						[# NextLedState = "off" #]
+					} else {
+						if [# State == "work"#] {
+							[# NextLedState = "blinking" #]
+						}
+					}
+				}
+			}
+			
+			println("Led Controller | Setting led to $NextLedState")
+			
+			if [# NextLedState == "on" #] {
+				forward led -m turnon : turnon(on)
+				
+				[#
+					CurrentLedState = "on"
+				#]	
+				
+			} else {
+				if [# NextLedState == "off" #] {
+					forward led -m turnoff : turnoff(off)
+					
+					[#
+						CurrentLedState = "off"
+					#]	
+					
+				}else {
+					if [# NextLedState == "blinking" && CurrentLedState != "blinking" #] {
+						forward led -m blink : blink(blink)	
+						
+						[#
+							CurrentLedState = "blinking"
+						#]	
+					}
+				}
+			}
+		}
+		
+	}
+	
+	Goto observe
+}
+
+
+
+QActor sonar context ctx_rasp {	
+	[#
+		var D = 200
+	#]
+
+	State s0 initial {
+		delay 1000
+	}
+	
+	Goto scan
+	
+	State scan {
+		[# 
+			D = D - 10
+		#]
+		
+		println("\tSonar: detected distance $D")
+		emit sonardata : distance($D)
+		updateResource [# "$D" #]			
+		
+	}
+	Goto s0
+}
+
+

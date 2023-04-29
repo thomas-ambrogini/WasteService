@@ -126,7 +126,18 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t1210",targetState="home",cond=whenReply("destinationReached"))
+					 transition(edgeName="t1210",targetState="home_direction",cond=whenReply("destinationReached"))
+				}	 
+				state("home_direction") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						request("trolleyRotate", "trolleyRotate(down)" ,"transporttrolley" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t1311",targetState="home",cond=whenReply("rotateDone"))
 				}	 
 			}
 		}

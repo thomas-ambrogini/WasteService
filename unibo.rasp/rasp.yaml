@@ -1,0 +1,20 @@
+version: '3'
+services:
+    rasp:
+      image: rasp:1.0
+      extra_hosts:
+        wasteservice: 
+      ports:
+      - 8056:8056/tcp
+      - 8056:8056/udp
+  
+
+
+
+
+## -------------------------------------------------------------
+## TODO See https://docs.docker.com/compose/startup-order/
+## -------------------------------------------------------------
+## docker-compose -f basicrobot22.yaml  up
+## docker-compose run --service-ports wenv
+## docker-compose run --service-ports vrobotclient  ATTIVA ANCHE wenv

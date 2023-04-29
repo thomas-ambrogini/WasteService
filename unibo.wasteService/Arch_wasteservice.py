@@ -28,4 +28,5 @@ with Diagram('wasteserviceArch', show=False, outformat='png', graph_attr=graphat
      wasteservice >> Edge(color='magenta', style='solid', xlabel='pickup', fontcolor='magenta') >> transporttrolley
      wasteservice >> Edge(color='magenta', style='solid', xlabel='deposit', fontcolor='magenta') >> transporttrolley
      wasteservice >> Edge(color='blue', style='solid', xlabel='updateWeights', fontcolor='blue') >> storage_manager
+     wasteservice >> Edge(color='magenta', style='solid', xlabel='trolleyRotate', fontcolor='magenta') >> transporttrolley
 diag

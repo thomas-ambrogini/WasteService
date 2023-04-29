@@ -27,7 +27,7 @@ class Alarmemitter ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t016",targetState="handle_sonardata",cond=whenEvent("sonardata"))
+					 transition(edgeName="t026",targetState="handle_sonardata",cond=whenEvent("sonardata"))
 				}	 
 				state("handle_sonardata") { //this:State
 					action { //it:State

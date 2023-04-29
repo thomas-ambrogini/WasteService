@@ -66,6 +66,7 @@ class Pathexec ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 				}	 
 				state("doMove") { //this:State
 					action { //it:State
+						delay(300) 
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

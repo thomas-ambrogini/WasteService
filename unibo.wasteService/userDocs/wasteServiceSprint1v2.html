@@ -311,6 +311,7 @@
 	
 	<a href="../test/it/unibo/wasteservice/TestRequest.java" >Test request</a> <br>
 	
+	
 	<h3 id="trolley_action"> Deposito da parte del trolley</h3>
 	
 	Il deposito si compone di tre azioni fondamentali:
@@ -337,9 +338,9 @@
 
 	<br> <br>
 	
-	<a href="../src/WasteServiceAnalisiRequisitiDepositAmbrogini.qak" >Modello non eseguibile deposit</a> <br>
+	<a href="../src/WasteServiceAnalisiRequisitiDepositAmbrogini.qakt" >Modello non eseguibile deposit</a> <br>
 	
-	<a href="../src/WasteServiceAnalisiRequisitiDepositEseguibileAmbrogini.qak" >Modello non eseguibile deposit</a> <br>
+	<a href="../src/WasteServiceAnalisiRequisitiDepositEseguibileAmbrogini.qakt" >Modello eseguibile deposit</a> <br>
 	
 	
 	<a href="../test/it/unibo/wasteservice/TestDeposit.java" >Test deposit</a> <br>
@@ -352,13 +353,13 @@
 	richieste, altrimenti dovrà tornare ad INDOOR.<br>
 	La parte di test che controlla il ritorno ad HOME risulta essere eseguibile col modello definito precedentemente, mentre
 	il test con richieste successive non è al momento eseguibile, verrà reso eseguibile in analisi del problema.
-	
+	<br>
 	<a href="../test/it/unibo/wasteservice/TestEndDeposit.java" >Test fine deposito</a> <br>
 	
 	<h3> Aggiornamento Pesi </h3>
 	Una volta eseguito il deposito dovrà essere aggiornato il contatore dei pesi. In seguito viene illustrato un test
 	per verificare che tale incremento sia corretto. Il test non è ancora eseguibile.
-	
+	<br>
 	<a href="../test/it/unibo/wasteservice/TestUpdateWeights.java" >Test aggiornamento pesi in seguito al deposito (non eseguibile)</a> <br>
 	
 	
@@ -370,39 +371,39 @@
 	Quando una richiesta da parte di un WasteTruck viene accettata (loadaccepted), si ha la necessità di comunicare al 
 	trolley di andare a prelevare il carico dall'area INDOOR.
 	
-	<h3> Problematica Ritiro effettuato </h3>
+	<h3><a href="#Problematica_Ritiro_effettuato">Problematica Ritiro effettuato</a> </h3>
 	Quando il trolley effettua il ritiro dei materiali dal WasteTruck deve comunicare al WasteService di avere effettuato il ritiro.
 	
-	<h3> Problematica libera area di INDOOR </h3>
+	<h3> <a href="#Problematica_leave_indoor">Problematica libera area indoor</a> </h3>
 	In seguito ad una loadaccepted bisogna decidere quando e come comunicare al WasteTruck di liberare
 	l'area di INDOOR.
 	
-	<h3> Problematica Fine deposito </h3>
+	<h3> <a href="#Problematica_fine_deposito">Problematica Fine Deposito</a> </h3>
 	Quando il trolley deposita i materiali nel container deve comunicare di aver eseguita questa operazione.
 	
-	<h3> Problematica NuovoDeposito  </h3>
+	<h3> <a href="#Problematica_nuovo_deposito">Problematica Nuovo Deposito</a>  </h3>
 	Quando il trolley conclude il requisito FineDeposito e quindi deposita il carico nel container appropriato si ha la necessità di
 	trovare un modo per poter verificare se sono arrivati nuovi WasteTruck nel frattempo.
 	
-	<h3> Problematica Posizioni Container</h3>
+	<h3> <a href="#Problematica_container">Problematica Posizione container</a></h3>
 	Quale componente deve essere a conoscenza delle posizioni dei container.
 	
-	<h3> Problematica Percorso trolley </h3>
+	<h3> <a href="#Problematica_percorso">Problematica percorso trolley</a> </h3>
 	Come fa il trolley a sapere il percorso da seguire partendo da una posizione iniziale per arrivare all'obiettivo.
 	
-	<h3> Problematica Peso Container </h3>
+	<h3> <a href="#Problematica_peso">Problematica Peso container</a> </h3>
 	Quale componente possiede l'informazione del peso attuale dei container.
 	
-	<h3> Problematica Mappa della stanza </h3>
+	<h3> <a href="#Problematica_mappa">Problematica Mappa della stanza</a> </h3>
 	Come viene rappresentata la mappa della stanza
 	
-	<h3> Problematica Rappresentazione di INDOOR e dei CONTAINER </h3>
+	<h3> <a href="#Problematica_rappresentazione">Problematica rappresentazione INDOOR e dei CONTAINER</a> </h3>
 	Come vengono rappresentati i CONTAINER e INDOOR nella stanza.
 	
-	<h3> Problematica rappresentazione dei valori preimpostati </h3>
+	<h3> <a href="#Problematica_mappa">Problematica rappresentazione valori predefiniti</a> </h3>
 	In quale modo e quale entità è a conoscenza dei valori preimpostati definiti nei requisiti.
 	
-	<h3> Problematica Posizione del trolley nella stanza </h3>
+	<h3> <a href="#Problematica_posizione_trolley">Problematica posizione trolley</a> </h3>
 	Quale componente è a conoscenza della posizione del robot all'interno della stanza.		
 
 
@@ -509,7 +510,7 @@
 	 	</ol>
 	 	
 	 	
-	 	<h3> Problematica Ritiro effettuato </h3>
+	 	<h3 id="Problematica_Ritiro_effettuato">  Problematica Ritiro effettuato </h3>
 	 	
 	 	<h4> Architettura #1 </h4>
 	 	<img src="img/CORE3Image.jpg" alt="img"> <br>
@@ -559,7 +560,7 @@
 	 	sfruttare il messaggio di response per comunicare di aver eseguito il pickup.
 	 	
 	 	
-	 	<h3> Problematica Fine Deposito </h3>
+	 	<h3 id="Problematica_fine_deposito"> Problematica Fine Deposito </h3>
 	 	
 	 	<h4> Architettura #1 </h4>
 	 	<img src="img/CORE7Image.jpg" alt="img"> <br>
@@ -575,7 +576,7 @@
 	 	carico dei container.
 	 	
 	 	
-	 	<h3> Problematica Nuovo Deposito </h3>
+	 	<h3 id="Problematica_nuovo_deposito"> Problematica Nuovo Deposito </h3>
 	 	
 	 	<h4> Soluzione #1 </h4>
 	 	Si può sfruttare il fatto che il transport trolley sia un attore con una coda associata e nel caso
@@ -611,7 +612,7 @@
 		Nella soluzione con dispatch e request il trolley sarebbe costretto a conoscere il WasteService.
 	 	
 	 		 	
-	 	<h3> Problematica libera area INDOOR </h3>
+	 	<h3 id="Problematica_leave_indoor"> Problematica libera area INDOOR </h3>
 	 	Il WasteTruck deve liberare l'area di INDOOR dopo che è stato prelevato il carico dal trolley.
 	 	<br>
 	 	Per quanto riguarda come comunicarlo si ha:
@@ -629,7 +630,7 @@
 	 	un messaggio in più.
 	 	
 	 	
-	 	<h3> Problematica Posizioni Container</h3>
+	 	<h3 id="Problematica_container"> Problematica Posizioni Container</h3>
 	 	
 	 	<h4> Soluzione #1 </h4>
 	 	Può essere il WasteService che conosce la posizione dei container e comunica al trolley (quando deve attivarsi) 
@@ -661,7 +662,7 @@
 			
 		</ol>
 		
-		<h3> Problematica percorso trolley </h3>
+		<h3 id="Problematica_percorso"> Problematica percorso trolley </h3>
 		Per non cablare l'informazione del percorso direttamente all'interno del trolley è possibile: 
 		<h4> Soluzione #1 </h4>
 		Fare in modo che il wasteService conosca il percorso da seguire e invii il percorso tramite messaggio al trolley.
@@ -681,7 +682,7 @@
 		Dato che all'interno di un magazzino sembra improbabile avere percorsi di grandi dimensioni si consiglia la 
 		soluzione dove il trolley viene considerato come un attuatore.
 		
-		<h3> Problematica peso container</h3>
+		<h3 id="Problematica_peso"> Problematica peso container</h3>
 		<h4> Soluzione #1 </h4>
 		Può essere il wasteService stesso a tenere il peso dei container. 
 		
@@ -690,7 +691,7 @@
 		un componente per ogni container nel sistema oppure un unico componente che tiene traccia del peso di tutti i container.
 		
 		
-		<h3> Problematica Mappa della stanza e valori preimpostati </h3>
+		<h3 id="Problematica_mappa"> Problematica Mappa della stanza e valori preimpostati </h3>
 		Dai requisiti si sa che le dimensioni della stanza sono note a priori e anche le posizioni dei punti di interesse
 		che possono anche essere considerati come un'unica coordinata (HOME, INDOOR, PLASTICBOX, GLASSBOX).<br>
 		Per poter informare i componenti che lo necessitano del valore delle informazioni note apriori è possibile:<br>
@@ -718,7 +719,7 @@
 		}
 		</pre>
 		
-		<h3> Problematica Rappresentazione della posizione di INDOOR, HOME e dei CONTAINER</h3>
+		<h3 id="Problematica_rappresentazione"> Problematica Rappresentazione della posizione di INDOOR, HOME e dei CONTAINER</h3>
 		
 		Le possibili soluzioni trovate sono: <br>
 		
@@ -748,7 +749,7 @@
 		
 
 		
-		<h3> Problematica Posizione del trolley nella stanza </h3>
+		<h3 id="Problematica_posizione_trolley"> Problematica Posizione del trolley nella stanza </h3>
 		Anche in questo caso si ha la possibilità che sia il trolley stesso a sapere la sua posizione oppure il waste service
 		mantenga informazioni per quanto riguarda gli spostamenti che il robot sta eseguendo. <br>
 		Sempre con l'idea di voler mantenere il trolley il più independente possibile si consiglia di lasciare questa
@@ -782,8 +783,106 @@
 	 	utilizzato esclusivamente per l'aggiornamento del peso corrente dei Container, anche in caso
 	 	di errore, esso viene gestito in maniera semplice dal WasteService.
 	 	
+	 	<h3> Soluzione Proposta</h3>
+	 	Al termine dell'analisi del problema si propone una possibile soluzione che tiene conto di tutte le 
+	 	considerazioni fatte precedentemente.<br>
+	 	Il principale obiettivo di questa soluzione è quello di mantenere il trolley come un attuatore e il 
+	 	wasteService come la "mente" delle operazioni. Per fare questo molte comunicazioni vengono proposte
+	 	come request/response, in modo che il trolley non debba essere a conoscenza di componente specifici.
+	 	
+	 	<br>
+	 	N.B. Questa soluzione NON sarà la soluzione finale, nè vincola i progettisti a utilizzare la stessa soluzione
+	 	ai problemi mostrati in precedenza.<br>
+	 	Serve, principalmente, per avere un riscontro da parte del committente.
+	 	<br>
+	 	<br>
+	 	<table style="width:80%">
+            <thead>
+              <tr>
+                <th>Messaggio</th>
+                <th>Tipo </th>
+                <th> Descrizione </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>storeLoad </td>
+                <td> Request</td>
+                <td> Richiesta inviata dal truck per iniziare l'operazione di deposito</td>
+              </tr>
+              <tr>
+                <td>loadAccepted</td>
+                <td>Response</td>
+                <td> Risposta affermativa da parte del wasteService al truck</td>
+              </tr>
+              <tr>
+                <td>loadRejected</td>
+                <td>Response</td>
+                <td> Risposta negativa da parte del wasteService al truck</td>
+              </tr>
+              <tr>
+                <td>leaveIndoor</td>
+                <td> Dispatch </td>
+                <td> Messaggio utilizzato per segnalare al wasteTruck di liberare l'area di indoor</td>
+              </tr>
+              <tr>
+                <td> moveToDestination </td>
+                <td> Request </td>
+                <td> Richiesta da parte del wasteService per segnalare al trolley di muoversi in una
+                determinata posizione</td>
+              </tr>
+              <tr>
+                <td> destinationReached </td>
+                <td> Response</td>
+                <td> Risposta da parte del trolley per segnalare di aver raggiunto la destinazione</td>
+              </tr>
+              <tr>
+                <td> pickup</td>
+                <td> Request </td>
+                <td> Richiesta da parte del wasteService per segnalare al trolley di eseguire l'azione
+                di pickup</td>
+              </tr>
+              
+              <tr>
+                <td> pickupDone</td>
+                <td> Response </td>
+                <td> Risposta del trolley alla richiesta di pickup</td>
+              </tr>
+              
+              <tr>
+                <td> deposit</td>
+                <td> Request </td>
+                <td> Richiesta da parte del wasteService per segnalare al trolley di eseguire l'azione
+                di deposit</td>
+              </tr>
+              
+              <tr>
+                <td> depositDone</td>
+                <td> Response </td>
+                <td> Risposta del trolley alla richiesta di deposit</td>
+              </tr>
+              
+              <tr>
+                <td> findPath</td>
+                <td> Request </td>
+                <td> Richiesta inviata dal trolley al pathFinder per richiedere un path ad una determinata
+                destinazione</td>
+              </tr>
+              
+              <tr>
+                <td> path</td>
+                <td> Response </td>
+                <td> Risposta del pathFinder contenente il path che il trolley deve percorrere</td>
+              </tr>
+            </tbody>
+            </table>
+	 	
 	 	<h4> Architettura Finale </h4>
-	 	<img src="img/COREFINALEImage.jpg" alt="img"> <br>
+	 	In questa architettura il wasteTruck viene rappresentato come un attore solamente per scopi
+	 	prototipali. In fasi successive verrà trasformato in una entità appropriata. <br>
+	 	
+            
+	 	<img src="img/wasteserviceSprint1Problemarch.png" alt="img"> <br>
 	 	
 	 	<h3> Modello eseguibile analisi del Problema </h3>
 	
@@ -802,7 +901,12 @@
 		per far iniziare la procedura.
 	
 		<br><br>
-	
+		
+		Viene introdotta una classe di supporto per poter creare degli observer che sfruttano
+		CoAP.
+		
+		<br><a href="../test/TestObserver.java" >Test request</a> <br>
+		
 		<b>Test Request</b><br>
 		<a href="../test/it/unibo/wasteservice/TestRequest.java" >Test request</a> <br>
 		
@@ -879,12 +983,12 @@
 	
 	<ul>
 		<li>
-			Handler: una entità principale che si occupa di ricevere le richieste di deposito da parte del WasteTruck ed inizia
+			TruckGui: una entità principale che si occupa di ricevere le richieste di deposito da parte del WasteTruck ed inizia
 			la procedura di deposito
 		</li>
 		
 		<li>
-			Core: componente che si occupa di gestire il requisito Core definito in analisi dei requisiti. In particolare, 
+			wasteservice: componente che si occupa di gestire il requisito Core definito in analisi dei requisiti. In particolare, 
 			essendo che il trolley viene trattato come un semplice attuatore, la parte Core del waste Service si occuperà
 			di segnalare tutti i movimenti che il trolley deve fare e di tenere traccia della sua posizione.
 		</li>
@@ -902,53 +1006,47 @@
 	</ul>
 	
 	
-	<h4> WasteServiceHandler </h4>
-	La parte Handler del wasteService viene realizzato come un'applicazione web realizzata tramite Spring per facilitarne lo sviluppo.
+	<h4> TruckGUI </h4>
+	Questo componente viene realizzato come un'applicazione web realizzata tramite Spring per facilitarne lo sviluppo.
 	<br>
-	Il primo compito che l'handler deve eseguire è quello di interagire con il WasteTruck, realizzandolo, a questo punto, come
-	un vero e proprio "alieno" e non un attore come veniva mostrato in analisi per scopi prototipali.
-	Verrà realizzata un interfaccia Web per il WasteTruck per comunicare con il WasteServiceHandler attraverso
-	WebSocket.
+	La truckGUI mostrerà, inizialmente, una pagina nella quale il driver possa inserire le informazione
+	del carico che vuole depositare. Queste informazioni verranno inviate allo storage manager, per controllare
+	di avere abbastanza spazio per contenere il carico e verrà inviato il messaggio di loadaccept/loadreject.
+	<br>
 	<br>
 	<a href="../../truckGui/unibo.wasteservice/src/main/resources/templates/truck.html" > Interfaccia per il truck driver</a> 
 	<br>
 	<br>
-	Successivamente l'handler dovrà interagire con il nuovo componente introdotto: StorageManager, per potersi
-	assicurare che ci sia lo spazio nei container per poter depositare i materiali.
-	Per fare questo, non essendo un attore, il componente handler agirà a sua volta da alieno nei confronti
-	del contesto QAK.
-	In seguito alla risposta dello storageManager, l'handler andrà ad inviare loadaccepted o loadrejected
-	al wasteTruck.
-	<br>
 	Infine, l'applicazione Web andrà ad interagire con il componente Core del WasteService per poter 
 	iniziare la vera e proprio azione di pickup/deposito. Per fare questo si necessita di introdurre
 	un nuovo scambio di informazioni e quindi un nuovo messaggio.
-	Dato che l'handler necessita di una risposta, per sapere quando liberare il WasteTruck dall'area di deposito,
+	Dato che si necessita di una risposta, per sapere quando liberare il WasteTruck dall'area di deposito,
 	questa comunicazione verrà realizzata come una request/reply. 
 	<br>
 	
 	<pre><key2>Request</key2> startDeposit : startDeposit( TYPE ) <br><key2>Reply</key2> leaveIndoor : leaveIndoor(_)</pre>
 	
 	<br>
-	Quando l'handler deve avviare la fase di deposito invia il messaggio di startDeposit al componente
-	Core e quando il trolley ha effettivamente ritirato i materiali da Indoor il componente Core invia
-	la reply leaveIndoor all'handler, che in analisi del problema era stato mostrato come Dispatch, ora 
-	diventa una reply.
+	Quando l'applicazione web deve avviare la fase di deposito invia il messaggio di startDeposit al 
+	wasteService e quando il trolley ha effettivamente ritirato i materiali da Indoor il wasteService invia
+	la reply leaveIndoor all'applicazione web.
+	<br>
+	Il messaggio di Dispatch leaveIndoor, mostrato in analisi, diventa ora una reply.
 	
 	
 	
-	<h4> WasteServiceCore </h4>
+	<h4> WasteService </h4>
 	Il componente Core del WasteService si occuperà di gestire la logica di business dell'applicazione e
 	inviare i vari messaggi per poter comandare il transportTrolley come è stato mostrato con il WasteService
 	nel prototipo dell'analisi del problema.
 	<br>
-	Quando il Core riceverà il messaggio di startDeposit da parte dell'handler, si avviano le operazioni
+	Quando il Core riceverà il messaggio di startDeposit da parte della truckGUI, si avviano le operazioni
 	necessarie per poter eseguire tutte le azioni per arrivare al deposito dei materiali all'interno del 
 	container corretto.
 	
 	<br>
 	Al termine dell'azione di pickup da parte del Trolley, il Core invierà la reply introdotta 
-	precedentemente: "leaveIndoor" all'handler, in modo da poter liberare l'area di deposito.
+	precedentemente: "leaveIndoor" alla truckGUI, in modo da poter liberare l'area di deposito.
 	
 	
 	<h4> StorageManager </h4>
@@ -969,9 +1067,9 @@
 	StorageManager, attraverso la reply "storeRequestReply", segnalerà se sia possibile o meno farlo.
 	
 	<br>
-	Per poter aggiornare i pesi, in seguito alla deposit da parte del trolley, si introduce un evento,
-	inviato dal WasteServiceCore, per segnalare l'avvenuto deposito. Quando lo StorageManager riceve questo
-	evento si occuperà di aggiornare i pesi ed inviare un messaggio tramite CoAP per comunicare il nuovo
+	Per poter aggiornare i pesi, in seguito alla deposit da parte del trolley, si introduce un messaggio,
+	inviato dal wasteservice allo storage manager , per segnalare l'avvenuto deposito. Quando lo StorageManager riceve questo
+	messaggio si occuperà di aggiornare i pesi ed inviare un messaggio tramite CoAP per comunicare il nuovo
 	valore del peso dei container.
 	
 	<pre><key2>updateResource</key2>[# "glass($CurrentGlassWeight), plastic($CurrentPlasticWeight)" #]</pre>
@@ -1041,18 +1139,86 @@
 	<h2>Testing</h2>
 	<div class="remark">
 	Sono stati adattati i test plan mostrati precedentemente in base alle modifiche effettuate al sistema.
+	<br>	
+	Essendo il sistema distribuito, si ha la necessità di avviare il sistema esternamente con l'utilizzo
+	di docker prima di lanciare i test.
+	
+	<b>Test Request</b><br>
+		<a href="../test/it/unibo/wasteservice/TestRequest.java" >Test request</a> <br>
+		
+		<ul>
+			<li>
+				TestRequestOk: il test invia una richiesta di storeload con un carico che possa essere accettato e si verifica
+				che il waste service invii la risposta corretta (loadaccepted)
+			</li>
+			<li>
+				TestRequestFail: il test invia una richiesta di storeload con un carico molto elevato e si verifica
+				che il waste service invii la risposta corretta (loadrejected)
+			</li>
+		</ul>
+		
+		<br><br>
+		
+		<b>Test Deposit</b><br>
+		<a href="../test/it/unibo/wasteservice/TestDeposit.java" >Test deposit</a> <br>
+		
+		<ul>
+			<li>
+				TestDepositOk: il test controlla che il trolley si fermi in tutte le posizioni corrette per poter effettuare un 
+				deposito.
+			</li>
+			<li>
+				TestDepositFail: il test controlla che nel caso si inseriscano il posizioni errate venga generato un errore.
+			</li>
+			
+			<li>
+				TestDeposit: controlla che il peso all'interno del container sia stato aggiornato correttamente
+			</li>
+		</ul>
+		
+		<br><br>
+		
+		<b>Test End Deposit</b><br>
+		<a href="../test/it/unibo/wasteservice/TestEndDeposit.java" >Test end deposit</a> <br>
+		
+		<ul>
+			<li>
+				TestDepositReturnHome: controlla che il trolley torni ad home nel caso non ci siano nuove richieste da servire.
+			</li>
+			<li>
+				TestDepositAnotherRequest: controlla che, nel caso ci siano nuove richieste una volta terminato il deposito, il trolley torni ad indoor
+				e non vada ad home.
+			</li>
+			
+		</ul>
+		
+		<br><br>
+		
+		<b>Test Update Weigths</b><br>
+		<a href="../test/it/unibo/wasteservice/TestUpdateWeights.java" >Test Update Weights</a> <br>
+		
+		<ul>
+			<li>
+				TestUpdateOk: Controlla che i pesi siano aggiornati correttamente.
+			</li>
+			<li>
+				TestUpdateFail: Controlla che, nel caso in cui i pesi siano aggiornati erroneamente, si segnali l'errore.
+			</li>
+			
+		</ul>
 	</div>
 	
 	<h2>Deployment</h2>
 	<div class="remark">
 	Per eseguire il deployment si è utilizzato docker e si sono separate le immagini dei vari componenti.
+	
 	<br>
 	<a href="../wasteserviceSprint1.yaml" >File docker compose per eseguire il sistema</a>
 	<br>
 	
 	Viene anche fornito un ambiente virtuale nella quale è possibile osservare il robot muoversi. <br>
 	Questo software era già disponibile alla software house tramite il progetto: virtualrobot2020.
-	 </div>
+	</div>
 	 
 	<!-- USEFUL
 	<table style="width:100%" border="1">

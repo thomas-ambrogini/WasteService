@@ -25,14 +25,20 @@ services:
       - robot
   transporttrolley:
     image: thomasambrogini/transporttrolley:1.0
+    extra_hosts:
+      - "rasp:192.168.1.11"
     ports:
       - 192.168.1.7:8051:8051/udp
       - 192.168.1.7:8051:8051/tcp
+        #      - 8051:8051/udp
+        #- 8051:8051/tcp
     depends_on:
       - wasteservice
   
   gui:
     image: thomasambrogini/gui:2.0
+    extra_hosts:
+      - "rasp:192.168.1.11"
     ports: 
       #      - 192.168.1.7:8085:8085/udp
       #      - 192.168.1.7:8085:8085/tcp

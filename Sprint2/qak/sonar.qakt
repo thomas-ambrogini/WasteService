@@ -1,0 +1,29 @@
+System rasp
+
+Event    sonardata       : distance( V )
+
+Context ctx_rasp 			 ip [ host="localhost" port=8056 ]
+
+QActor sonar context ctx_rasp {	
+	[#
+		var Val = 200
+		var Wait = 2000L
+	#]
+
+	State scanWait initial {
+		[# Wait = kotlin.random.Random.nextLong(2000, 3500) #]
+	}
+	Transition t0 whenTimeVar Wait -> scan
+	
+	State scan {
+		[# 
+			Val = Val - 10
+		#]
+		
+		println("\tSonar: detected distance $Val")
+		emit sonardata : distance($Val)
+		updateResource [# "$Val" #]			
+		
+	}
+	Goto scanWait
+}

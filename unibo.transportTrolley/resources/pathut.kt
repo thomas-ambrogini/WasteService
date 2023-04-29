@@ -75,6 +75,10 @@ object pathut{
 		os.close()		
 	}
 	
+	fun getRotation( dir : String) : String {
+		return "l"
+	}
+	
 	fun updateMap() {
 		while(curPath.length != 0) {
 			val move = ""+curPath[0]
@@ -86,4 +90,6 @@ object pathut{
 	fun test(){
 		//val map = RoomMap("map2019.txt")
 	}
+	
+
 }

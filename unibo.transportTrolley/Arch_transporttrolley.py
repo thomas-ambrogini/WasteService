@@ -26,6 +26,7 @@ with Diagram('transporttrolleyArch', show=False, outformat='png', graph_attr=gra
           transporttrolley_mover=Custom('transporttrolley_mover','./qakicons/symActorSmall.png')
           alarmemitter=Custom('alarmemitter','./qakicons/symActorSmall.png')
      transporttrolley >> Edge(color='magenta', style='solid', xlabel='findPath', fontcolor='magenta') >> transporttrolley_mover
+     transporttrolley >> Edge(color='magenta', style='solid', xlabel='trolleyRotate', fontcolor='magenta') >> transporttrolley_mover
      transporttrolley_mover >> Edge(color='magenta', style='solid', xlabel='dopath', fontcolor='magenta') >> pathexec
      transporttrolley_mover >> Edge( xlabel='alarm', **eventedgeattr, fontcolor='red') >> sys
      sys >> Edge(color='red', style='dashed', xlabel='sonardata', fontcolor='red') >> alarmemitter

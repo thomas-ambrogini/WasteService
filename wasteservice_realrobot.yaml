@@ -1,0 +1,40 @@
+version: '3'
+services:
+  wasteservice:
+    image: thomasambrogini/wasteservice:2.0
+    ports:
+      #- 192.168.1.7:8049:8049/udp
+        #- 192.168.1.7:8049:8049/tcp
+      - 8049:8049/udp
+      - 8049:8049/tcp
+
+  transporttrolley:
+    image: thomasambrogini/transporttrolley:1.0
+    extra_hosts:
+      - "robot: 192.168.1.11"
+    ports:
+      - 192.168.1.7:8051:8051/udp
+      - 192.168.1.7:8051:8051/tcp
+    depends_on:
+      - wasteservice
+  
+  gui:
+    image: thomasambrogini/gui:2.0
+    ports: 
+      #      - 192.168.1.7:8085:8085/udp
+      #      - 192.168.1.7:8085:8085/tcp
+      - 8085:8085
+        #      - 192.168.1.7:8085:8085
+  
+  truck_gui:
+    image: thomasambrogini/truck_gui:1.0
+    ports:
+      - 8080:8080
+    depends_on:
+      - wasteservice
+## -------------------------------------------------------------
+## TODO See https://docs.docker.com/compose/startup-order/
+## -------------------------------------------------------------
+## docker-compose -f basicrobot22.yaml  up
+## docker-compose run --service-ports wenv
+## docker-compose run --service-ports vrobotclient  ATTIVA ANCHE wenv

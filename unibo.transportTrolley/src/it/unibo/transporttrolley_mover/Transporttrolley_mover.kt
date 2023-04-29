@@ -43,8 +43,9 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t07",targetState="stopped",cond=whenDispatch("stop"))
-					transition(edgeName="t08",targetState="findThePath",cond=whenRequest("findPath"))
+					 transition(edgeName="t010",targetState="stopped",cond=whenDispatch("stop"))
+					transition(edgeName="t011",targetState="findThePath",cond=whenRequest("findPath"))
+					transition(edgeName="t012",targetState="rotate",cond=whenRequest("trolleyRotate"))
 				}	 
 				state("findThePath") { //this:State
 					action { //it:State
@@ -70,9 +71,9 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t19",targetState="savepath",cond=whenDispatch("stop"))
-					transition(edgeName="t110",targetState="pathDone",cond=whenReply("dopathdone"))
-					transition(edgeName="t111",targetState="handle_resume",cond=whenReply("dopathfail"))
+					 transition(edgeName="t113",targetState="alarm",cond=whenDispatch("stop"))
+					transition(edgeName="t114",targetState="pathDone",cond=whenReply("dopathdone"))
+					transition(edgeName="t115",targetState="handle_resume",cond=whenReply("dopathfail"))
 				}	 
 				state("pathDone") { //this:State
 					action { //it:State
@@ -85,6 +86,21 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					}	 	 
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
+				state("alarm") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						emit("alarm", "alarm(STOP)" ) 
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_alarm", 
+				 	 					  scope, context!!, "local_tout_transporttrolley_mover_alarm", 1000.toLong() )
+					}	 	 
+					 transition(edgeName="t616",targetState="stopped",cond=whenTimeout("local_tout_transporttrolley_mover_alarm"))   
+					transition(edgeName="t617",targetState="stopped",cond=whenReply("dopathdone"))
+					transition(edgeName="t618",targetState="savepath",cond=whenReply("dopathfail"))
+				}	 
 				state("savepath") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
@@ -93,7 +109,6 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 								
 												RemainingPath = payloadArg(0)
 						}
-						emit("alarm", "alarm(STOP)" ) 
 						println("TROLLEY | SAVE PATH: $RemainingPath")
 						//genTimer( actor, state )
 					}
@@ -113,7 +128,7 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t712",targetState="handle_resume",cond=whenDispatch("resume"))
+					 transition(edgeName="t719",targetState="handle_resume",cond=whenDispatch("resume"))
 				}	 
 				state("handle_resume") { //this:State
 					action { //it:State
@@ -141,10 +156,42 @@ class Transporttrolley_mover ( name: String, scope: CoroutineScope  ) : ActorBas
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_handle_resume", 
+				 	 					  scope, context!!, "local_tout_transporttrolley_mover_handle_resume", 5000.toLong() )
 					}	 	 
-					 transition(edgeName="t213",targetState="stopped",cond=whenDispatch("stop"))
-					transition(edgeName="t214",targetState="pathDone",cond=whenReply("dopathdone"))
-					transition(edgeName="t215",targetState="handle_resume",cond=whenReply("dopathfail"))
+					 transition(edgeName="t220",targetState="idle",cond=whenTimeout("local_tout_transporttrolley_mover_handle_resume"))   
+					transition(edgeName="t221",targetState="stopped",cond=whenDispatch("stop"))
+					transition(edgeName="t222",targetState="pathDone",cond=whenReply("dopathdone"))
+					transition(edgeName="t223",targetState="handle_resume",cond=whenReply("dopathfail"))
+				}	 
+				state("rotate") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("trolleyRotate(DIR)"), Term.createTerm("trolleyRotate(DIR)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												val Path = pathut.getRotation(payloadArg(0))
+												pathut.setPath(Path)
+												pathut.updateMap()
+								request("dopath", "dopath($Path)" ,"pathexec" )  
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t524",targetState="rotateDone",cond=whenReply("dopathdone"))
+					transition(edgeName="t525",targetState="handle_resume",cond=whenReply("dopathfail"))
+				}	 
+				state("rotateDone") { //this:State
+					action { //it:State
+						answer("trolleyRotate", "rotateDone", "rotateDone(OK)"   )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 			}
 		}

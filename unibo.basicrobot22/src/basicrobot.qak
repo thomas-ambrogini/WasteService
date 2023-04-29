@@ -187,7 +187,7 @@ QActor pathexec context ctx_basicrobot{
 	
 	State doMove{
 		//printCurrentMessage
-// 		delay 300  //avoid too fast ...
+ 		delay 300  //avoid too fast ...
  	}
 	Goto doMoveW if [# CurMoveTodo == "w" #] else doMoveTurn
 	

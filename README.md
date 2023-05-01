@@ -9,3 +9,19 @@ https://user-images.githubusercontent.com/87020559/235297469-6a206b6f-dbaf-48bf-
 
 https://user-images.githubusercontent.com/87020559/235297470-33ee83fc-793d-4dc6-b20a-bf57a00dd6d4.MOV
 
+
+## Start the System
+
+> Per utilizzare nell'ambiente virtuale
+```bash
+  docker-compose -f wasteservice_Sprint3_Pc.yaml up
+  Avviare sonar e led sul raspberry tramite docker o tramite distribuzione
+```
+
+
+> Per utilizzare nell'ambiente reale
+```bash
+  docker-compose -f wasteservice_Sprint3_real_Pc.yaml up
+  Avviare sonar e led sul raspberry tramite docker o tramite distribuzione
+  Avviare basicRobot sul rasp
+```

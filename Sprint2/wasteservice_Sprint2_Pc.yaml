@@ -16,7 +16,7 @@ services:
       - wenv
 
   wasteservice:
-    image: thomasambrogini/wasteservice:2.0
+    image: thomasambrogini/wasteservice:2.1
     ports:
       #- 192.168.1.7:8049:8049/udp
         #- 192.168.1.7:8049:8049/tcp
@@ -26,7 +26,7 @@ services:
       - robot
       
   transporttrolley:
-    image: thomasambrogini/transporttrolley:2.0
+    image: thomasambrogini/transporttrolley:2.1
     ports:
       #- 192.168.1.7:8051:8051/udp
         #- 192.168.1.7:8051:8051/tcp

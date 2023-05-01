@@ -13,16 +13,19 @@ class Storage_manager ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( 
 	override fun getInitialState() : String{
 		return "s0"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
 				val Utility = utility.storage_manager.StorageManagerUtility()	
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t00",targetState="handleRequest",cond=whenRequest("storeRequest"))
 					transition(edgeName="t01",targetState="handleAsk",cond=whenRequest("storageAsk"))
 					transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("updateWeights"))
@@ -39,7 +42,11 @@ class Storage_manager ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( 
 								 {answer("storeRequest", "storeRequestReply", "storeRequestReply(rejected)"   )  
 								 }
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 				state("handleAsk") { //this:State
@@ -50,7 +57,11 @@ class Storage_manager ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( 
 								 var SpaceLeft = Utility.getWeight(payloadArg(0))  
 								answer("storageAsk", "storageAmount", "storageAt(${payloadArg(0)},$SpaceLeft)"   )  
 						}
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 				state("handleUpdate") { //this:State
@@ -63,7 +74,11 @@ class Storage_manager ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( 
 						
 						updateResourceRep( "glass($CurrentGlass), plastic($CurrentPlastic)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 			}

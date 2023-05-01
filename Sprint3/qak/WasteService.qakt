@@ -1,0 +1,203 @@
+System wasteservice
+
+//mqttBroker "broker.hivemq.com" : 1883 eventTopic "unibo/ambrogini/wasteService"
+  
+Request  startDeposit   : startDeposit( TYPE )
+Reply    leaveIndoor    : leaveIndoor(_)
+
+Request  pickup         : pickup( ARG )
+Reply    pickupDone     : pickupDone( ARG )
+
+Request  deposit        : deposit( ARG )
+Reply    depositDone    : depositDone( ARG )
+
+Request  moveToDestination  : info( X_DESTINATION, Y_DESTINATION )
+Reply    destinationReached : destinationReached( ARG )
+
+Request trolleyRotate : trolleyRotate(DIR)
+Reply   rotateDone    : rotateDone(_)
+
+//STORAGE MANAGER
+ 
+Request  storageAsk        : storageAsk(MAT)
+Reply 	 storageAmount     : storageAmount(MAT, QNT)
+
+Request  storeRequest      : storeRequest(MAT, QNT) 
+Reply    storeRequestReply : storeRequestReply(ANS)
+
+Dispatch updateWeights     : updateWeights(_)
+
+
+
+Context ctx_transporttrolley		  ip [ host="transporttrolley" port=8051 ]
+Context ctx_wasteservice			  ip [ host="localhost"        port=8049 ]
+
+ExternalQActor transporttrolley context ctx_transporttrolley
+
+
+QActor storage_manager context ctx_wasteservice {
+	[#
+		val Utility = utility.storage_manager.StorageManagerUtility()	
+	#]
+	
+	State s0 initial {
+		printCurrentMessage
+	}
+	
+	Transition t0 whenRequest storeRequest  -> handleRequest
+				  whenRequest storageAsk    -> handleAsk
+				  whenMsg     updateWeights -> handleUpdate
+	
+	State handleRequest {
+		printCurrentMessage
+		
+		onMsg (storeRequest : storeRequest(MAT, QNT)) {
+			if [# Utility.checkDeposit(payloadArg(0), payloadArg(1).toDouble()) #] {
+				replyTo storeRequest with storeRequestReply : storeRequestReply(accepted)
+			}
+			else {
+				replyTo storeRequest with storeRequestReply : storeRequestReply(rejected)
+			}
+		}
+	}
+	
+	Goto s0
+	
+	State handleAsk {
+		printCurrentMessage
+		onMsg (storageAsk : storageAsk(MAT) ) {
+			[# var SpaceLeft = Utility.getWeight(payloadArg(0)) #]
+			replyTo storageAsk with storageAmount : storageAt($payloadArg(0), $SpaceLeft)
+		}
+	}
+	
+	Goto s0
+	
+	State handleUpdate {
+		printCurrentMessage
+		
+		[# 
+			Utility.deposit()
+			val CurrentGlass = Utility.getWeight("Glass")
+			val CurrentPlastic = Utility.getWeight("Plastic")
+
+		#]
+		
+		updateResource [# "glass($CurrentGlass), plastic($CurrentPlastic)" #]
+		
+	}
+	
+	Goto s0
+	
+}
+
+
+QActor wasteservice context ctx_wasteservice {
+	[#
+		var Type                 = ""
+	#]
+	
+	State home initial {
+		printCurrentMessage
+		updateResource [# "trolleyPosition(home)" #]
+	}
+	
+	Transition t0 whenRequest startDeposit -> moveTrolleyIndoor
+
+	State moveTrolleyIndoor {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX("indoor")
+			val Y_Destination = positionUt.getCordY("indoor")
+		#]
+		
+		onMsg( startDeposit : startDeposit(TYPE) ) {
+			[#
+				Type = payloadArg(0)				
+			#]	
+		}
+		
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+	}
+	
+	Transition t2 whenReply destinationReached -> handlepickup
+	
+	State handlepickup {
+		printCurrentMessage
+		updateResource [# "trolleyPosition(indoor)" #]
+	
+		request transporttrolley -m pickup : pickup(true)
+	}
+	
+	Transition t11 whenReply pickupDone -> handle_pickupDone
+	
+	State handle_pickupDone {
+		printCurrentMessage
+		
+		replyTo startDeposit with leaveIndoor : leaveIndoor(leave)
+		
+	}
+ 	
+	Goto  moveTrolleyContainer
+	
+	State moveTrolleyContainer {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX(Type)
+			val Y_Destination = positionUt.getCordY(Type)
+		#]
+		
+			
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+		
+		
+	}
+	
+	Transition t4 whenReply destinationReached -> handleDeposit
+	
+	State handleDeposit {
+		printCurrentMessage
+		updateResource [# "trolleyPosition($Type)" #]
+		
+		request transporttrolley -m deposit : deposit(true)
+		
+	}
+	
+	Transition t11 whenReply depositDone -> handle_depositDone
+	
+	State handle_depositDone {
+		printCurrentMessage
+		forward storage_manager -m updateWeights : updateWeights(_)
+	}
+	
+
+	Transition t5 	whenTime 10 -> moveTrolleyHome
+					whenRequest startDeposit -> moveTrolleyIndoor
+		
+
+					
+	State moveTrolleyHome {
+		printCurrentMessage
+		
+		[#
+			val X_Destination = positionUt.getCordX("home")
+			val Y_Destination = positionUt.getCordY("home")
+		#]
+		
+		request transporttrolley -m moveToDestination : info( $X_Destination, $Y_Destination )
+	}
+	
+	Transition t12 whenReply destinationReached -> home_direction
+	
+	State home_direction {
+		printCurrentMessage
+		request transporttrolley -m  trolleyRotate : trolleyRotate(down)
+	}
+	
+	Transition t13 whenReply rotateDone -> home
+						
+	
+}
+  

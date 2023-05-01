@@ -160,53 +160,75 @@
 					RD: Lunghezza del lato del trolley.
 				</li>
 			</ol>
-			
+	
+		<section id="glossario">
+			<h3>Glossario<a class="headerlink" href="#glossario" title="Permalink to this headline">¶</a></h3>
+				
+				<ol class="arabic simple">
+					<li>
+						WasteTruck: camion che si approccia al sistema per poter depositare i materiali.
+					</li>
+					<li>
+						WasteService: servizio centrale che si occupa di rispondere alle richieste del WasteTruck.
+					</li>
+					<li>
+						DDR robot: Con il termine DDR (Differential Drive Robot) robot il commitente intende il robot del progetto unibo.basicrobot22
+					</li>
+					<li>
+						Transport Trolley: Il transport trolley non è il DDR Robot, sono due entità distinte. Il trolley potrebbe sfruttare il DDR robot per 
+						eseguire i movimenti necessari.
+					</li>
+					<li>
+						Area di servizio: zona nella quale si muove il trolley con zone particolari:
+						<ul>
+							<li>
+								INDOOR: area dove il trolley deve andare a raccogliere il materiali per il deposito.
+							</li>
+							<li>
+								Home: punto di partenza del trolley.
+							</li>
+							<li>
+								PlasticBox: area in cui è presente il contenitore per la plastica.
+							</li>
+							<li>
+								GlassBox: area in cui è presente il contenitore per il vetro.
+							</li>
+						</ul>
+					</li>
 
-	<section id="glossario">
-		<h3>Glossario<a class="headerlink" href="#glossario" title="Permalink to this headline">¶</a></h3>
-			
-			<ol class="arabic simple">
-				<li>
-					WasteTruck: camion che si approccia al sistema per poter depositare i materiali.
-				</li>
-				<li>
-					WasteService: servizio centrale che si occupa di rispondere alle richieste del WasteTruck.
-				</li>
-				<li>
-					DDR robot: Con il termine DDR (Differential Drive Robot) robot il commitente intende il robot del progetto unibo.basicrobot22
-				</li>
-				<li>
-					Transport Trolley: Il transport trolley non è il DDR Robot, sono due entità distinte. Il trolley potrebbe sfruttare il DDR robot per 
-					eseguire i movimenti necessari.
-				</li>
-				<li>
-					Area di servizio: zona nella quale si muove il trolley con zone particolari:
-					<ul>
-						<li>
-							INDOOR: area dove il trolley deve andare a raccogliere il materiali per il deposito.
-						</li>
-						<li>
-							Home: punto di partenza del trolley.
-						</li>
-						<li>
-							PlasticBox: area in cui è presente il contenitore per la plastica.
-						</li>
-						<li>
-							GlassBox: area in cui è presente il contenitore per il vetro.
-						</li>
-					</ul>
-				</li>
+					<li>
+						Stati nella quali il trolley si può trovare:
+						<ul>
+							<li>
+								IDLE: non sta facendo nulla.
+							</li>
+							<li>
+								Working: il trolley si sta muovendo.
+							</li>
+							<li>
+								Stopped: il trolley è stato bloccato da un comando esterno.
+							</li>
 
-				<li>
-					Led: spia luminosa.
-				</li>
-				
-				<li>
-					Sonar: sensore per misurare la distanza.
-				</li>
-				
-				
-			</ol>
+						</ul>
+					</li>
+	
+					<li>
+						Led: spia luminosa.
+					</li>
+					
+					<li>
+						Sonar: sensore per misurare la distanza.
+					</li>
+					
+					<li>
+						Service-Manager: operatore umano che interagisce con la GUI.
+					</li>
+					
+					<li>
+						GUI: interfaccia grafica.
+					</li>
+				</ol>
+
 			
 	<section id="qak">
 	<h3> Utilizzo di attori e QAK <a class="headerlink" href="#qak" title="Permalink to this headline">¶</a></h3>

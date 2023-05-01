@@ -1,0 +1,59 @@
+System rasp
+
+//LED 
+Dispatch blink   : blink(_)
+Dispatch turnon  : turnon(_)
+Dispatch turnoff : turnoff(_)
+
+
+
+Context ctx_rasp 			 ip [ host="localhost" port=8056 ]
+
+
+QActor led context ctx_rasp {
+	State start initial {
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State listen {
+		printCurrentMessage
+	}
+	Transition t0 whenMsg turnon  -> handle_on
+				  whenMsg turnoff -> handle_off
+				  whenMsg blink   -> handle_blink_on
+	
+	State handle_on {
+		printCurrentMessage
+		println("\tLed | On")
+		updateResource [# "on" #]
+	}
+	Goto listen
+	
+	State handle_off {
+		printCurrentMessage
+		println("\tLed | Off")
+		updateResource [# "off" #]
+	}
+	Goto listen
+	
+	State handle_blink_on {
+		printCurrentMessage
+		println("\tLed | Blink on")
+		updateResource [# "blink on" #]
+	}
+	Transition t0 whenTime 1000 -> handle_blink_off
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+					
+					
+	State handle_blink_off {
+		printCurrentMessage
+		println("\tLed | Blink off")
+		updateResource [# "blink off" #]
+	}
+	
+	Transition t0 whenTime 1000 -> handle_blink_on
+					whenMsg turnon -> handle_on
+					whenMsg turnoff -> handle_off
+}

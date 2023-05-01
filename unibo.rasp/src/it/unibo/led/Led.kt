@@ -13,9 +13,8 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 	override fun getInitialState() : String{
 		return "start"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
 			   val simulate       = true
 			   val ledActorName = "led"
@@ -25,16 +24,24 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 						ledConfig.configureTheLed( simulate, ledActorName  )
 						updateResourceRep( "ledState(off)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="listen", cond=doswitch() )
 				}	 
 				state("listen") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t040",targetState="handle_on",cond=whenDispatch("turnon"))
-					transition(edgeName="t041",targetState="handle_off",cond=whenDispatch("turnoff"))
-					transition(edgeName="t042",targetState="handle_blink_on",cond=whenDispatch("blink"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t00",targetState="handle_on",cond=whenDispatch("turnon"))
+					transition(edgeName="t01",targetState="handle_off",cond=whenDispatch("turnoff"))
+					transition(edgeName="t02",targetState="handle_blink_on",cond=whenDispatch("blink"))
 				}	 
 				state("handle_on") { //this:State
 					action { //it:State
@@ -47,7 +54,11 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 						 }
 						updateResourceRep( "ledState(on)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="listen", cond=doswitch() )
 				}	 
 				state("handle_off") { //this:State
@@ -61,7 +72,11 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 						 }
 						updateResourceRep( "ledState(off)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="listen", cond=doswitch() )
 				}	 
 				state("handle_blink_on") { //this:State
@@ -75,12 +90,16 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 						 }
 						updateResourceRep( "ledState(blink)"  
 						)
-						stateTimer = TimerActor("timer_handle_blink_on", 
-							scope, context!!, "local_tout_led_handle_blink_on", 500.toLong() )
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t043",targetState="handle_blink_off",cond=whenTimeout("local_tout_led_handle_blink_on"))   
-					transition(edgeName="t044",targetState="handle_on",cond=whenDispatch("turnon"))
-					transition(edgeName="t045",targetState="handle_off",cond=whenDispatch("turnoff"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_handle_blink_on", 
+				 	 					  scope, context!!, "local_tout_led_handle_blink_on", 500.toLong() )
+					}	 	 
+					 transition(edgeName="t03",targetState="handle_blink_off",cond=whenTimeout("local_tout_led_handle_blink_on"))   
+					transition(edgeName="t04",targetState="handle_on",cond=whenDispatch("turnon"))
+					transition(edgeName="t05",targetState="handle_off",cond=whenDispatch("turnoff"))
 				}	 
 				state("handle_blink_off") { //this:State
 					action { //it:State
@@ -93,12 +112,16 @@ class Led ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, scope 
 						 }
 						updateResourceRep( "ledState(blink)"  
 						)
-						stateTimer = TimerActor("timer_handle_blink_off", 
-							scope, context!!, "local_tout_led_handle_blink_off", 500.toLong() )
+						//genTimer( actor, state )
 					}
-					 transition(edgeName="t046",targetState="handle_blink_on",cond=whenTimeout("local_tout_led_handle_blink_off"))   
-					transition(edgeName="t047",targetState="handle_on",cond=whenDispatch("turnon"))
-					transition(edgeName="t048",targetState="handle_off",cond=whenDispatch("turnoff"))
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_handle_blink_off", 
+				 	 					  scope, context!!, "local_tout_led_handle_blink_off", 500.toLong() )
+					}	 	 
+					 transition(edgeName="t06",targetState="handle_blink_on",cond=whenTimeout("local_tout_led_handle_blink_off"))   
+					transition(edgeName="t07",targetState="handle_on",cond=whenDispatch("turnon"))
+					transition(edgeName="t08",targetState="handle_off",cond=whenDispatch("turnoff"))
 				}	 
 			}
 		}

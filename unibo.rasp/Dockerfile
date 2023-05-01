@@ -13,9 +13,6 @@ COPY ./*.sh ./
 COPY So* ./
 ## COPY ./*.py ./
 
-RUN apt-get update -y
-RUN apt-get install -y wiringpi
-RUN sudo apt-get install -y python
 
 CMD ["bash", "unibo.rasp"]
 

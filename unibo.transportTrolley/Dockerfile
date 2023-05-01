@@ -5,8 +5,8 @@
 FROM openjdk:12.0.2
 EXPOSE 8051
 ## ADD extracts the tar
-ADD ./build/distributions/unibo.transporttrolley-1.0.tar /
-WORKDIR /unibo.transporttrolley-1.0/bin
+ADD ./build/distributions/unibo.transporttrolley-2.0.tar /
+WORKDIR /unibo.transporttrolley-2.0/bin
 COPY ./*.pl ./
 #COPY ./*.json ./
 COPY ./*.bin ./

@@ -7,17 +7,17 @@
 FROM hypriot/rpi-java
 EXPOSE 8056
 ## ADD extracts the tar
-ADD ./build/distributions/unibo.rasp-1.4.tar /
-WORKDIR /unibo.rasp-1.3/bin
+ADD ./build/distributions/unibo.rasp-1.5.tar /
+WORKDIR /unibo.rasp-1.5/bin
 COPY ./*.pl ./
 COPY ./*.json ./
 COPY ./*.sh ./
-COPY So*   ./
+COPY So* ./
 ## COPY ./*.py ./
 
-RUN sudo apt update -y
-RUN apt install -y wiringpi
-RUN sudo apt-get install -y python
+#RUN sudo apt update -y
+#RUN apt install -y wiringpi
+#RUN sudo apt-get install -y python
 
 CMD ["bash", "unibo.rasp"]
 

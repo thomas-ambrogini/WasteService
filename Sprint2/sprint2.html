@@ -354,6 +354,11 @@
 				<td> Messaggio inviato dal LedController per segnalare al led di accendersi </td>
 			  </tr>
 			  <tr>
+				<td> turnOff </td>
+				<td> Dispatch</td>
+				<td> Messaggio inviato dal LedController per segnalare al led di spegnersi </td>
+			  </tr>
+			  <tr>
 				<td> sonardata </td>
 				<td> Event</td>
 				<td> Evento inviato dal sonar per segnalare la distanza rilevata </td>
@@ -493,6 +498,8 @@
 	<br>
 	
 	
+	<h4> Architettura finale</h4>
+	<img src="img/FinalArchitectureSprint2.png" alt="img"> <br>
 	
 	</div>
 	
@@ -504,6 +511,8 @@
 	<div class="remark">
 	Per quanto riguarda il deployment di questo sprint si sono creati nuovi file yaml per la distribuzione attraverso dokcer-compose. <br>
 	In questo caso si sono creati due file diversi:
+	<br>
+	<br>
 	<ul>
 		<li>
 			wasteservice_Sprint2_sameDevice.yaml: contiene tutti i componenti sulla stessa macchina.
@@ -553,7 +562,7 @@
 			<td> 8020</td>
 		  </tr>
 		  <tr>
-			<td> rasp </td>
+			<td> Rasp </td>
 			<td> 8056</td>
 		  </tr>
 		 

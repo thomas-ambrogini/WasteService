@@ -14,7 +14,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
 }
 
-version '1.4'
+version '1.5'
 sourceCompatibility = 11
 
 repositories {

@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+   
+   
+  	<link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+	<title>Sprint3 Thomas Ambrogini</title>
+		
+</head>
+    
+<body>
+	<div id="top">
+	<h1>LABORATORIO DI INGEGNERIA DEI SISTEMI SOFTWARE <font size="5"></font> </h1>
+	</div>  
+	
+	<div class="body"> 
+	<h2>Introduction</h2>
+	<div  class="remark">
+		Tema finale dell'esame di ingegneria dei sistemi software: WasteService
+	</div>
+	 
+	<h2>Requirements</h2>
+	
+	<div class="remark">
+	 
+		<a class="headerlink" href="./TemaFinale22.html" title="Permalink to this headline">Testo requisiti fornito dal committente</a>
+	
+	</div>
+	
+	 
+	
+	<h2>Requirement analysis</h2>
+	<div class="remark">
+	
+	Per analisi requisiti generali (fra cui il glossario ) consultare lo sprint1. <br>
+	<a class="headerlink" href="./../Sprint1/wasteServiceSprint1.html" title="Permalink to this headline">Sprint1</a>
+	<br>
+	
+	<section id="requisiti-funzionali">
+		<h3>Requisiti funzionali<a class="headerlink" href="#requisiti-funzionali" title="Permalink to this headline">¶</a></h3>
+		
+		
+		Requisiti riguardanti GUI
+		<ol class="arabic simple">
+		All'interno della GUI devono essere visibili le seguenti informazioni:
+			<li>
+				<p><em>Trolley info</em>: stato attuale del trolley e posizione attuale.</p>	
+			</li>
+			<li>
+				<p><em>Peso container</em>: il peso corrente di ciascun container.</p>	
+			</li>
+			<li>
+				<p><em>Led info</em>: stato attuale del led.</p>	
+			</li>
+		</ol>
+		
+	<h4> Rappresentazione della posizione del trolley</h4>
+	A seguito di un meeting con il committente si è stabilito che la posizione del trolley deve
+	essere rappresentata nelle seguenti posizioni:
+	
+	<ul>
+		<li>
+			HOME
+		</li>
+		<li>
+			INDOOR
+		</li>
+		<li>
+			CONTAINER PLASTICA
+		</li>
+		<li>
+			CONTAINER VETRO
+		</li>
+	</ul>
+	
+	<h4> Rappresentazione dello stato del trolley </h4>
+	Lo stato del trolley può assumere tre valori differenti:
+	<ul>
+		<li>
+			IDLE
+		</li>
+		<li>
+			WORKING
+		</li>
+		<li>
+			STOPPED
+		</li>
+	</ul>
+	
+	
+	
+	
+	<h3> Problemi da analizzare</h3>
+	
+	<h4> STATO DI TROLLEY, LED, E BOX</h4>
+	La GUI deve monitorare lo stato di TROLLEY, LED e BOX e bisogna, quindi, stabilire come ottenere
+	tali informazioni.
+	
+	<h4> POSIZIONE DEL TROLLEY</h4>
+	La GUI deve essere a conoscenza della posizione del trolley.
+	
+	<h4> REALIZZAZIONE DELLA GUI</h4>
+	Che tipo di componente dovrebbe essere la GUI?
+	
+	
+	</div>
+	
+	<h2>Problem analysis</h2>
+
+	 
+	 <div class="remark">
+	 
+	 
+	 	<h3>STATO TROLLEY, LED E BOX</h3>
+	 		La GUI deve mostrare a video lo stato di TROLLEY, LED e BOX. Per ottenere queste informazioni
+	 		si hanno diverse possibilità. <br>
+	 		
+	 		Un primo tipo di comunicazione potrebbe essere una forma di polling, nella quale la GUI
+	 		chiede ai vari componenti i valori interessati ogni intervallo di tempo. In questo caso
+	 		si avrebbe una GUI che lavora attivamente per richiedere i dati degli altri componenti del
+	 		sistema.<br>
+	 		Si sconsiglia questo tipo di soluzione.
+	 		
+	 		<br>
+	 		Tenendo in considerazione quello che è stato discusso nello Sprint2 è possibile sfruttare
+	 		l'osservabilità CoAP degli attori del sistema per aggiornare le varie informazioni della GUI
+	 		tramite pattern observer e non un lavoro svolto attivamente.
+	 
+		<h3>RAPPRESENTAZIONE DELLA POSIZIONE DEL TROLLEY</h3>
+		Tra le informazioni che devono essere mostrate tramite la GUI vi è anche la posizione del trolley
+		in ogni momento. <br>
+		Come anticipato in analisi dei requisiti, il committente ha stabilito che è sufficiente un'informazione
+		approssimata per quanto riguarda la posizione del trolley (INDOOR, PLASTIC, GLASS, HOME).<br>
+		
+		Per aggiornare la posizione si ricorda che il wasteService emette queste informazioni tramite
+		CoAP.
+	 
+	 	
+	 	
+	 	<h3>REALIZZAZIONE DELLA GUI</h3>
+	 	
+	 	Essendo che un operatore umano (Service-manager) deve interagire con essa si hanno due possibilità
+	 	principali:
+	 	
+	 	<ul>
+	 		<li>
+	 			Applicazione mobile: un'applicazione (che potrebbe essere per Android o IOS) che permetta
+	 			di accedere alle informazioni specificate precedentemente.
+	 		</li>
+	 		<li>
+	 			Applicazione Web: un'applicazione Web, accessibile attraverso browser.
+	 		</li>
+	 	</ul>
+	 	
+	 	Si consiglia la realizzazione della applicazione Web, non avendo nessuna richiesta specifica
+	 	da parte del committente ed essendo più generale come soluzione.<br>
+	 	Inoltre, nel caso in cui si realizzi un'applicazione REST, sarebbe facilmente estendibile con 
+	 	una applicazione mobile.
+	 	
+	 	
+	 </div>
+	
+	
+	
+	
+	<h2>Project</h2> 
+	<div class="remark">
+	
+	Per la realizzazione della GUI si è optato per realizzare un'applicazione Web, tramite l'utilizzo del 
+	framework Spring Boot.<br>
+	Per evitare di dover ricaricare la pagina per ottenere l'aggiornamento delle informazioni si è deciso
+	di utilizzare le WebSocket, che realizzano un canale di comunicazione tra due applicazioni,
+	messe a disposizione in modo semplice da SpringBoot. <br>
+	
+	<h3> Lato SERVER </h3>
+	
+	<ul>
+		<li>
+			Configurer: affinchè l'applicazione Sprint inoltri le richieste di un client al server, è necessario
+			registrare un gestore utilizzando una classe di configurazione che implementa l'interfaccia
+			WebSocketConfigurer. <br>
+			
+			<a href="../gui/src/main/java/unibo/gui/WebSocketConfiguration.java" > WebSocketConfiguration </a> <br>
+			
+			In base alla configurazione, il server risponderà, con un'istanza di WebSocketHandler.
+		</li>
+		
+		<li> 
+			GUIWebSocketHandler: questa classe definisce un gestore custom di messaggi come specializzazione della
+			classe astratta AbstractWebSocketHandler (o delle sue sottoclassi).<br>
+			L'handler tiene traccia di ogni sessione di WebSocket attualmente attiva e contiene le CoapConnection
+			ai componenti del sistema da osservare (wasteService, trolley, storageManager).
+			
+			<a href="../gui/src/main/java/unibo/gui/GuiWebSocketHandler.java" > GuiWebSocketHandler </a> <br>
+		</li>
+		
+		<li>
+			GuiApplication: permette a Spring di avviare tutti i componenti necessari.<br>
+			<a href="../gui/src/main/java/unibo/gui/GuiApplication.java" > GuiApplication </a> <br>
+		</li>
+		
+		<li>
+			GuiController: essendo Spring basato sul pattern MVC, il controller permette di smistare
+			le richieste. <br>
+			<a href="../gui/src/main/java/unibo/gui/GuiController.java" > GuiController </a> <br>
+		</li>
+		
+		<li>
+			Utils: varie funzioni di utilità per semplificare la creazione di observer CoAP e di inviare
+			i messaggi ai destinatari interessati.
+			
+		</li>
+	
+	</ul>
+	
+	
+	<h3> Lato CLIENT</h3>
+	<ul>
+		<li>
+			Interfaccia grafica dell'applicazione.
+		</li>
+		
+		<li>
+			Files JavaScript per realizzare la comunicazione tramite WebSocket lato Client.
+		</li>
+	
+	</ul>
+	
+	
+	</div>
+	 
+	
+	<h2>Deployment</h2> 
+	<div class="remark">
+
+	Per quanto riguarda il deployment di questo sprint si sono creati nuovi file yaml per la distribuzione attraverso dokcer-compose. <br>
+	In questo caso si sono creati due file diversi:
+	<br>
+	<br>
+	<ul>
+		<li>
+			wasteservice_Sprint3_sameDevice.yaml: contiene tutti i componenti sulla stessa macchina.
+		</li>
+		<li>
+			wasteservice_Sprint3_rasp.yaml: permette di lanciare la parte del sonar e led sul raspberry.
+		</li>
+		<li>
+			wasteservice_Sprint3_Pc.yaml: permette di lanciare la parte sviluppata nello sprint1 (con le modifiche effettuate in questo sprint) separatamente
+			da led e sonar, in modo che possano essere lanciati in modo distribuito.
+		</li>
+	</ul>
+	 
+
+		      	
+	<br/><br/> 	
+
+		<table style="width:40%">
+			<thead>
+			<tr>
+				<th>Service</th>
+				<th>Port</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td> WasteService </td>
+				<td> 8049</td>
+			</tr>
+			<tr>
+				<td> TransportTrolley </td>
+				<td> 8051</td>
+			</tr>
+			<tr>
+				<td> TruckGUI </td>
+				<td> 8080</td>
+			</tr>
+			<tr>
+				<td> VirtualRobot </td>
+				<td> 8090</td>
+			</tr>
+			<tr>
+				<td> BasicRobot </td>
+				<td> 8020</td>
+			</tr>
+			<tr>
+				<td> Rasp </td>
+				<td> 8056</td>
+			</tr>
+			<tr>
+				<td> Gui </td>
+				<td> 8085</td>
+			</tr>
+			
+			</tbody>
+			</table>
+	</div>
+	<!-- USEFUL
+	<table style="width:100%" border="1">
+	<tr>
+	<td style="width:50%">
+	</td>
+	<td></td>
+	</tr>
+	</table>
+	-->
+		      	
+	<br/><br/> 	
+
+	
+	<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;color:white">
+	By Thomas Ambrogini email: thomas.ambrogini@studio.unibo.it  
+	<img src="./img/ThomasAmbrogini.jpg" alt="mbot" width="15%" height="15%">
+	</div> 
+</body>
+</html>

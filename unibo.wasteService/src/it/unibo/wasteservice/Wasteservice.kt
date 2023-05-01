@@ -13,9 +13,8 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 	override fun getInitialState() : String{
 		return "home"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val interruptedStateTransitions = mutableListOf<Transition>()
 		
 				var Type                 = ""
 		return { //this:ActionBasciFsm
@@ -24,7 +23,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 						println("$name in ${currentState.stateName} | $currentMsg")
 						updateResourceRep( "trolleyPosition(home)"  
 						)
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t03",targetState="moveTrolleyIndoor",cond=whenRequest("startDeposit"))
 				}	 
 				state("moveTrolleyIndoor") { //this:State
@@ -39,7 +42,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 												Type = payloadArg(0)				
 						}
 						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t24",targetState="handlepickup",cond=whenReply("destinationReached"))
 				}	 
 				state("handlepickup") { //this:State
@@ -48,14 +55,22 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 						updateResourceRep( "trolleyPosition(indoor)"  
 						)
 						request("pickup", "pickup(true)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t115",targetState="handle_pickupDone",cond=whenReply("pickupDone"))
 				}	 
 				state("handle_pickupDone") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						answer("startDeposit", "leaveIndoor", "leaveIndoor(leave)"   )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition( edgeName="goto",targetState="moveTrolleyContainer", cond=doswitch() )
 				}	 
 				state("moveTrolleyContainer") { //this:State
@@ -65,7 +80,11 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 									val X_Destination = positionUt.getCordX(Type)
 									val Y_Destination = positionUt.getCordY(Type)
 						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t46",targetState="handleDeposit",cond=whenReply("destinationReached"))
 				}	 
 				state("handleDeposit") { //this:State
@@ -74,16 +93,24 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 						updateResourceRep( "trolleyPosition($Type)"  
 						)
 						request("deposit", "deposit(true)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t117",targetState="handle_depositDone",cond=whenReply("depositDone"))
 				}	 
 				state("handle_depositDone") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						forward("updateWeights", "updateWeights(_)" ,"storage_manager" ) 
-						stateTimer = TimerActor("timer_handle_depositDone", 
-							scope, context!!, "local_tout_wasteservice_handle_depositDone", 10.toLong() )
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_handle_depositDone", 
+				 	 					  scope, context!!, "local_tout_wasteservice_handle_depositDone", 10.toLong() )
+					}	 	 
 					 transition(edgeName="t58",targetState="moveTrolleyHome",cond=whenTimeout("local_tout_wasteservice_handle_depositDone"))   
 					transition(edgeName="t59",targetState="moveTrolleyIndoor",cond=whenRequest("startDeposit"))
 				}	 
@@ -94,14 +121,22 @@ class Wasteservice ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( nam
 									val X_Destination = positionUt.getCordX("home")
 									val Y_Destination = positionUt.getCordY("home")
 						request("moveToDestination", "info($X_Destination,$Y_Destination)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t1210",targetState="home_direction",cond=whenReply("destinationReached"))
 				}	 
 				state("home_direction") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						request("trolleyRotate", "trolleyRotate(down)" ,"transporttrolley" )  
+						//genTimer( actor, state )
 					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t1311",targetState="home",cond=whenReply("rotateDone"))
 				}	 
 			}

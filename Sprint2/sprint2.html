@@ -392,9 +392,9 @@
 	
 		<a href="./qak/Sprint2Problem.qakt" >Modello analisi del problema rasp</a>
 		<br>
-		<a href="./qak/WasteService.qakt" >TransportTrolley</a>
+		<a href="./qak/TransportTrolley.qakt" >TransportTrolley</a>
 		<br>
-		<a href="./qak/TransportTrolley.qakt" >WasteService</a>
+		<a href="./qak/WasteService.qakt" >WasteService</a>
 		<br>
 
 
@@ -450,179 +450,117 @@
 	
 	<h2>Project</h2> 
 	<div class="remark">
-	<h3> Waste Service </h3>
-	Il primo compito della progettazione sarà quello di separare i vari compiti attribuiti al WasteService in Analisi del problema.
-	
-	<ul>
-		<li>
-			Handler: una entità principale che si occupa di ricevere le richieste di deposito da parte del WasteTruck ed inizia
-			la procedura di deposito
-		</li>
-		
-		<li>
-			Core: componente che si occupa di gestire il requisito Core definito in analisi dei requisiti. In particolare, 
-			essendo che il trolley viene trattato come un semplice attuatore, la parte Core del waste Service si occuperà
-			di segnalare tutti i movimenti che il trolley deve fare e di tenere traccia della sua posizione.
-		</li>
-		
-		<li>
-			Storage: per scopo prototipale, in analisi del problema, il compito dello storage è stato fornito al WasteService
-			cablando i dati all'interno di esso. In progettazione verrà aggiunto un nuovo componente, che interagirà con il 
-			WasteService, che si occuperà proprio di gestire i pesi nei vari container.
-		</li>
-		
-		<li>
-			Un file di configurazione per quanto riguarda i parametri (come la posizione dei container).
-		</li>
-	
-	</ul>
-	
-	
-	<h4> WasteServiceHandler </h4>
-	La parte Handler del wasteService viene realizzato come un'applicazione web realizzata tramite Spring per facilitarne lo sviluppo.
-	<br>
-	Il primo compito che l'handler deve eseguire è quello di interagire con il WasteTruck, realizzandolo, a questo punto, come
-	un vero e proprio "alieno" e non un attore come veniva mostrato in analisi per scopi prototipali.
-	Verrà realizzata un interfaccia Web per il WasteTruck per comunicare con il WasteServiceHandler attraverso
-	API Rest.
-	<br>
-	Successivamente l'handler dovrà interagire con il nuovo componente introdotto: StorageManager, per potersi
-	assicurare che ci sia lo spazio nei container per poter depositare i materiali.
-	Per fare questo, non essendo un attore il componente handler, agirà a sua volta da alieno nei confronti
-	del contesto QAK.
-	In seguito alla risposta dello storageManager, l'handler andrà ad inviare loadaccepted o loadrejected
-	al wasteTruck.
-	<br>
-	Infine, l'applicazione Web andrà ad interagire con il componente Core del WasteService per poter 
-	iniziare la vera e proprio azione di pickup/deposito. Per fare questo si necessita di introdurre
-	un nuovo scambio di informazioni e quindi un nuovo messaggio.
-	Dato che l'handler necessita di una risposta, per sapere quando liberare il WasteTruck dall'area di deposito,
-	questa comunicazione verrà realizzata come una request/reply. 
-	<br>
-	
-	<pre><key2>Request</key2> startDeposit : startDeposit(_) <br><key2>Reply</key2> pickedUp : pickedUp(_)</pre>
+	<h3> Sonar </h3>
+	Il primo compito della progettazione sarà quello di realizzare in modo più approfondito il sonar. <br>
+	Considerando che la software house possiede già un progetto per quanto riguarda il sonar: <a href="https://github.com/anatali/issLab2022/tree/main/unibo.sonarqak22">unibo.sonarqak22</a>, utilizzerò tale progetto come base di partenza.<br>
+	Il progetto sonarqak22 permette di creare una pipe di attori come quelli mostrata di seguito:
+
+	<br><br>
+	<img src="img/sonarpipe.png" alt="img"> <br>
 	
 	<br>
-	Quando l'handler deve avviare la fase di deposito invia il messaggio di startDeposito al componente
-	Core e quando il trolley ha effettivamente ritirato i materiali da Indoor il componente Core invia
-	la reply pickedUp all'handler, che si occuperà di inviare il messaggio mostrato in analisi del problema:
-	"LeaveIndoor" per poter segnalare al truck di liberare l'area di scarico, in modo da poter accettare
-	nuove richieste.
+	Il primo attore della pipe risulta essere un generatore di dati (che può essere sia un sonar virtuale, che genera dati random, sia 
+	un vero sonar che invia i dati che legge), successivamente si ha un dataCleaner che permette di filtrare i dati non significativi; ed infine, si ha
+	il nostro attore sonarqak22 che permette di inviare tramite evento i dati filtrati di datacleaner agli altri componenti del sistema che risultano
+	essere interessati. <br>
+	I generatori di dati, il primo attore della pipe, sono realizzati come attori Kotlin (CodedQActor) e il loro progetto è: <a href="https://github.com/anatali/issLab2022/blob/main/unibo.sonarqak22/resources/sonarHCSR04Support2021.kt">sonarHCSR04Support2021.kt</a> e <a href="https://github.com/anatali/issLab2022/blob/main/unibo.sonarqak22/resources/sonarSimulator.kt">sonarSimulator.kt</a>
 	
 	
-	
-	<h4> WasteServiceCore </h4>
-	Il componente Core del WasteService si occuperà di gestire la logica di business dell'applicazione e
-	inviare i vari messaggi per poter comandare il transportTrolley come è stato mostrato con il WasteService
-	nel prototipo dell'analisi del problema.
+	<h4> Led </h4>
+	Per quanto riguarda il led si è voluto sfruttare un approccio simile a quello del sonarqak22, nella quale si crea
+	una pipe di attori.
 	<br>
-	Quando il Core riceverà il messaggio di startDeposit da parte dell'handler, si avviano le operazioni
-	necessarie per poter eseguire tutte le azioni per arrivare al deposito dei materiali all'interno del 
-	container corretto.
+	In questo caso, non essendo il led un generatore di dati, non si ha la necessità del datacleaner come in precedenza, ma la realizzazione
+	del progetto come pipe permette una grande flessibilità, in particolare nel caso si vogliano aggiungere nuovi comportamenti intermedi, come
+	potrebbe essere un logger.<br>
+	Nel caso attuale verranno realizzati due attori: ledSimulator e ledConcrete. Il led di alto livello avrà la responsabilità di inviare i vari comandi
+	all'apposito attore (nel caso simulation=true verrà inviato a simulator, concrete nel caso opposto). <br>
+	Di seguito viene riportato il codice dei due attori: <a href="./code/ledSimulator.kt">ledSimulator</a> e <a href="code/ledConcrete.kt">ledConcrete</a>
 	
+	<br><br>
+	
+	<img src="img/rasparchSonarLed.png" alt="img"> <br>
+	
+	<h3> Architettura finale </h3>
+
+	<h4> Modello </h4>
+
+	<a href="./qak/rasp.qakt" >Rasp</a>
 	<br>
-	Al termine dell'azione di pickup da parte del Trolley, il Core invierà la reply introdotta 
-	precedentemente: "pickedUp" all'handler, in modo da poter liberare l'area di deposito.
-	
-	
-	<h4> StorageManager </h4>
-	Il componente StorageManager si occuperà di gestire il peso corrente nei container e di valutare se sia 
-	possibile depositare il carico specificato da un WasteTruck che si trova nell'area di scarico.
+	<a href="./qak/TransportTrolley.qakt" >TransportTrolley</a>
 	<br>
-	Ogni volta che il peso verrà modificato il compenente utilizzerà il protocollo CoAP per segnalare la 
-	modifica. Questo facilita sia la fase di testing per verificare che il sistema funzioni correttamente, sia
-	permette a componenti interessati a questi cambiamenti di poterli "ascoltare".
-	
+	<a href="./qak/WasteService.qakt" >WasteService</a>
 	<br>
-	Per poter realizzare queste nuove comunicazioni servono nuovi messaggi.
-	<pre><key2>Request</key2> storeRequest : storeRequest(MAT, QNT) <br><key2>Reply</key2> storeRequestReply : sotreRequestReply(ANS)</pre>
-	
-	<br>
-	Il componente Handler del WasteService utilizzerà il messaggio di request "storeRequest" per poter
-	chiedere allo StorageManager se sia possibile depositare il materiale MAT con quantità QNT, lo 
-	StorageManager, attraverso la reply "storeRequestReply", segnalerà se sia possibile o meno farlo.
-	
-	<br>
-	Per poter aggiornare i pesi, in seguito alla deposit da parte del trolley, si introduce un evento,
-	inviato dal WasteServiceCore, per segnalare l'avvenuto deposito. Quando lo StorageManager riceve questo
-	evento si occuperà di aggiornare i pesi ed inviare un messaggio tramite CoAP per comunicare il nuovo
-	valore del peso dei container.
-	
-	<pre><key2>updateResource</key2>[# "glass($CurrentGlassWeight), plastic($CurrentPlasticWeight)" #]</pre>
-	
-	<h4> File di configurazione</h4>
-	Infine, viene introdotto un file di configurazione nella quale vengono inseriti tutti i valori 
-	preimpostati in modo da non doverli cablare nel codice.
-	
-	
-	<pre>
-		{
-		    <key4>"LOCATION"</key4>: {
-		        <key4>"HOME"</key4>: [0, 0],
-		        <key4>"INDOOR"</key4>: [16, 0],
-		        <key4>"PLASTICBOX"</key4>: [16, 19],
-		        <key4>"GLASSBOX"</key4>: [0, 19]
-		    },
-		    <key4>"MAXPB"</key4>: 500,
-		    <key4>"MAXGB"</key4>: 500,
-		    <key4>"DLIMIT"</key4>: 40
-		}
-		</pre>
-	
-	
-	<h3> Transport Trolley </h3>
-	Seguendo le indicazioni dell'analisi del problema si è voluto realizzare il transportTrolley come
-	un attuatore. <br>
-	Tuttavia si ha una parte di logica di business che non può essere eliminata dal trolley, in particolare,
-	la parte nella quale si necessita di fare il pickup ed il deposito dei materiali.
-	<br>
-	In progettazione si vogliono separare queste due parti del transportTrolley:
-	
-	<ul>
-		<li>
-			TransportTrolleyHandler: Un primo componente che si occupi proprio di fare queste operazioni e di fare da "manager"
-			delle richieste che arrivano da parte del WasteService. In particolare, in analisi
-			era stato evidenziata la necessità di un componente che trovasse un percorso verso la destinazione
-			inviata dal WasteService. <br>
-			Questo componente si occuperà, prima di tutto, di chiedere il percorso al componente mostrato 
-			in analisi "PathFinder" e successivamente di inviare il percorso al componente che si occupa
-			di muovere il trolley lungo tale percorso.
-	
-		</li>
-		<li>
-			TransportTrolleyMover: Un secondo componente che si occupi effettivamente dei movimenti da eseguire per raggiungere
-			la destinazione specificata. In particolare, si è pensato di utilizzare il BasicRobot e il 
-			PathExec (componenti già realizzati dalla software house per poter effettivamente muovere
-			il robot).
-			BasicRobot permette di implementare il movimento del robot in modo indipendente dalla tecnologia
-			utilizzata, il che lo rende un componente fondamentale in fase di testing e sviluppo.
-		</li>
-	</ul>
-	
 	
 	
 	
 	</div>
 	
-	<h2>Testing</h2> 
-	 
-	
+	<h2>Testing</h2>
+	<div class="remark"> 
+	I test sono rimasti gli stessi mostrati in test plans. 
+	</div>
 	<h2>Deployment</h2> 
-	
+	<div class="remark">
+	Per quanto riguarda il deployment di questo sprint si sono creati nuovi file yaml per la distribuzione attraverso dokcer-compose. <br>
+	In questo caso si sono creati due file diversi:
+	<ul>
+		<li>
+			wasteservice_Sprint2_sameDevice.yaml: contiene tutti i componenti sulla stessa macchina.
+		</li>
+		<li>
+			wasteservice_Sprint2_rasp.yaml: permette di lanciare la parte del sonar e led sul raspberry.
+		</li>
+		<li>
+			wasteservice_Sprint2_Pc.yaml: permette di lanciare la parte sviluppata nello sprint1 (con le modifiche effettuate in questo sprint) separatamente
+			da led e sonar, in modo che possano essere lanciati in modo distribuito.
+		</li>
+	</ul>
 	 
-	<h2>Maintenance</h2> 
-	 
-	<!-- USEFUL
-	<table style="width:100%" border="1">
-	<tr>
-	<td style="width:50%">
-	</td>
-	<td></td>
-	</tr>
-	</table>
-	-->
+
 		      	
 	<br/><br/> 	
+	Vengono mostrate i servizi e le porte utilizzate fino a questo punto dai componenti del sistema.
+	<br>
+	<br>
+
+	<table style="width:40%">
+		<thead>
+		  <tr>
+			<th>Service</th>
+			<th>Port</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  <tr>
+			<td> WasteService </td>
+			<td> 8049</td>
+		  </tr>
+		  <tr>
+			<td> TransportTrolley </td>
+			<td> 8051</td>
+		  </tr>
+		  <tr>
+			<td> TruckGUI </td>
+			<td> 8080</td>
+		  </tr>
+		  <tr>
+			<td> VirtualRobot </td>
+			<td> 8090</td>
+		  </tr>
+		  <tr>
+			<td> BasicRobot </td>
+			<td> 8020</td>
+		  </tr>
+		  <tr>
+			<td> rasp </td>
+			<td> 8056</td>
+		  </tr>
+		 
+		</tbody>
+		</table>
+
+		</div>
 
 	
 	<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;color:white">

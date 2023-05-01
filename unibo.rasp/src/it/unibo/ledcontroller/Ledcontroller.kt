@@ -13,8 +13,9 @@ class Ledcontroller ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 	override fun getInitialState() : String{
 		return "init"
 	}
+	@kotlinx.coroutines.ObsoleteCoroutinesApi
+	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		val interruptedStateTransitions = mutableListOf<Transition>()
 		
 				var AtHome = true
 				var Stopped = false
@@ -25,22 +26,14 @@ class Ledcontroller ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 					action { //it:State
 						coapObserverUtil.observe(myself ,"transporttrolley:8051", "ctx_transporttrolley/transporttrolley_mover" )
 						coapObserverUtil.observe(myself ,"wasteservice:8049", "ctx_wasteservice/wasteservice" )
-						//genTimer( actor, state )
 					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
 					 transition( edgeName="goto",targetState="observe", cond=doswitch() )
 				}	 
 				state("observe") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						//genTimer( actor, state )
 					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition(edgeName="t015",targetState="handleStatus",cond=whenDispatch("coapUpdate"))
+					 transition(edgeName="t055",targetState="handleStatus",cond=whenDispatch("coapUpdate"))
 				}	 
 				state("handleStatus") { //this:State
 					action { //it:State
@@ -101,11 +94,7 @@ class Ledcontroller ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 								  }
 								 }
 						}
-						//genTimer( actor, state )
 					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
 					 transition( edgeName="goto",targetState="observe", cond=doswitch() )
 				}	 
 			}

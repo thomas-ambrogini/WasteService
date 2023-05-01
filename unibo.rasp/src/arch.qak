@@ -40,6 +40,8 @@ Dispatch turnoff : turnoff(_)
 
 
 //SONAR
+Dispatch sonaractivate   : info(ARG)
+Dispatch sonardeactivate : info(ARG)
 Event    sonar           : distance( V )  
 Event    sonardata       : distance( V )
 
@@ -69,6 +71,14 @@ Context ctx_basicrobot       ip [ host="robot" port=8020 ]
 Context ctx_wasteservice     ip [ host="wasteservice" port=8049 ]
 Context ctx_transporttrolley ip [ host="transporttrolley" port=8051 ]
 Context ctx_rasp 			 ip [ host="localhost" port=8056 ]
+
+//DATA SOURCES
+CodedQActor sonarsimulator  context ctx_rasp className "sonarSimulator"  
+CodedQActor sonardatasource context ctx_rasp className "sonarHCSR04Support2021"
+CodedQActor datacleaner    	context ctx_rasp className "dataCleaner"
+
+CodedQActor ledsimulator    context ctx_rasp className "ledSimulator"
+CodedQActor ledconcrete     context ctx_rasp className "ledConcrete"
 
 
 QActor basicrobot context ctx_basicrobot{
@@ -639,9 +649,16 @@ QActor wasteservice context ctx_wasteservice {
 }
 
 QActor led context ctx_rasp {
+	[#
+	   val simulate       = true
+	   val ledActorName = "led"
+	#]
+	
 	State start initial {
-		updateResource [# "off" #]
+		run  ledConfig.configureTheLed(simulate, ledActorName)
+		updateResource [# "ledState(off)" #]
 	}
+	
 	Goto listen
 	
 	State listen {
@@ -653,40 +670,123 @@ QActor led context ctx_rasp {
 	
 	State handle_on {
 		printCurrentMessage
-		println("\tLed | On")
-		updateResource [# "on" #]
+		
+		if [# `it.unibo`.radarSystem22.domain.utils.DomainSystemConfig.simulation #] {
+			forward ledsimulator -m turnon :turnon(on)
+		} else {
+			forward ledconcrete -m turnon : turnon(on)
+		}
+		updateResource [# "ledState(on)" #]
 	}
 	Goto listen
 	
 	State handle_off {
 		printCurrentMessage
-		println("\tLed | Off")
-		updateResource [# "off" #]
+		
+		if [# `it.unibo`.radarSystem22.domain.utils.DomainSystemConfig.simulation #] {
+			forward ledsimulator -m turnoff :turnoff(on)
+		} else {
+			forward ledconcrete -m turnoff : turnoff(on)
+		}
+		updateResource [# "ledState(off)" #]
 	}
 	Goto listen
 	
 	State handle_blink_on {
 		printCurrentMessage
-		println("\tLed | Blink on")
-		updateResource [# "blink on" #]
-	}
-	Transition t0 whenTime 1000 -> handle_blink_off
-					whenMsg turnon -> handle_on
-					whenMsg turnoff -> handle_off
-					
-					
-	State handle_blink_off {
-		printCurrentMessage
-		println("\tLed | Blink off")
-		updateResource [# "blink off" #]
+		
+		if [# `it.unibo`.radarSystem22.domain.utils.DomainSystemConfig.simulation #] {
+			forward ledsimulator -m turnon : turnon(blink)
+		} else {
+			forward ledconcrete -m turnon : turnon(blink)
+		}
+		updateResource [# "ledState(blink)" #]
 	}
 	
-	Transition t0 whenTime 1000 -> handle_blink_on
-					whenMsg turnon -> handle_on
-					whenMsg turnoff -> handle_off
+	Transition t0 whenTime 500 -> handle_blink_off 
+				  whenMsg  turnon -> handle_on
+				  whenMsg  turnoff-> handle_off
+	
+	State handle_blink_off {
+		printCurrentMessage
+		
+		if [# `it.unibo`.radarSystem22.domain.utils.DomainSystemConfig.simulation #] {
+			forward ledsimulator -m turnoff :turnoff(blink)
+		} else {
+			forward ledconcrete -m turnoff : turnoff(blink)
+		}
+		updateResource [# "ledState(blink)" #]
+		
+	}
+	
+	Transition t0 whenTime 500 -> handle_blink_on
+				  whenMsg  turnon -> handle_on
+				  whenMsg  turnoff-> handle_off
+					
+					
 }
 
 
+QActor sonarqak22 context ctx_rasp {	
+	[# 
+	   val simulate       = true
+	   val sonarActorName = "sonarqak22"
+	#]
+	
+	
+	State s0 initial {
+		//printCurrentMessage
+		run  sonarConfig.configureTheSonar(simulate, sonarActorName)
+		 
+		//ASSUMPTION: the sonar subsystem emits the event sonar:distance(V)
+	}
+	
+	Goto idle
+	
+	State idle {
+		
+	}
+	Transition t0 whenMsg sonaractivate   -> activateTheSonar
+			      whenMsg sonardeactivate -> deactivateTheSonar
+			      
+			      
+	State activateTheSonar{
+		printCurrentMessage
+		if[#  `it.unibo`.radarSystem22.domain.utils.DomainSystemConfig.simulation #]{
+			forward sonarsimulator -m sonaractivate : info(ok) 
+			//run sonarConfig.activateSonarSimulated() //usingDomain
+		}else {
+			 forward sonardatasource -m sonaractivate : info(ok)  
+		}
+	}
+	Transition t0  whenEvent sonar           -> handleSonarData  
+	               whenMsg 	 sonardeactivate -> deactivateTheSonar
+	               
+	State deactivateTheSonar{
+		printCurrentMessage
+	}
+	Goto end
+	
+	State handleSonarData{
+  		 printCurrentMessage
+  		 onMsg( sonar : distance(D) ){
+   		 	[# val D = payloadArg(0) #]  
+  		    println("%%%%%%%%%%%%%%%%%%%%%%%%%%% emit %%%%%%%%%%%%%%% ${D}")
+  		 	emit sonardata : distance($D) //for the application
+  		 	updateResource [# "$D" #]
+  		 }
+  	}
+  	Transition t0 whenEvent sonar -> handleSonarData
+   				  whenMsg   sonardeactivate -> deactivateTheSonar
+	
+	State end{ 
+		println("sonarqak22 Deactivated")
+	}
+	
+	Goto idle
+	
+}
+ 
 QActor ledcontroller context ctx_rasp {
 	[#
 		var AtHome = true
@@ -742,7 +842,7 @@ QActor ledcontroller context ctx_rasp {
 			}
 			
 			if [# payloadArg(0) == "ctx_wasteservice_wasteservice" #] {
-				
+				// trolleyPosition(LOC)
 				[# AtHome = PayloadUtils.getTrolleyPosition(payloadArg(1)) == "home" #]
 				if [# !Stopped #] {
 					if [# AtHome || State == "idle"#] {
@@ -791,28 +891,8 @@ QActor ledcontroller context ctx_rasp {
 
 
 
-QActor sonar context ctx_rasp {	
-	[#
-		var Val = 200
-		var Wait = 2000L
-	#]
 
-	State scanWait initial {
-		[# Wait = kotlin.random.Random.nextLong(2000, 3500) #]
-	}
-	Transition t0 whenTimeVar Wait -> scan
-	
-	State scan {
-		[# 
-			Val = Val - 10
-		#]
-		
-		println("\tSonar: detected distance $Val")
-		emit sonardata : distance($Val)
-		updateResource [# "$Val" #]			
-		
-	}
-	Goto scanWait
-}
+
+
 
 

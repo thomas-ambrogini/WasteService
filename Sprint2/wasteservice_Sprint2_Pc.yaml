@@ -41,4 +41,11 @@ services:
       - 8080:8080
     depends_on:
       - wasteservice
-
+  
+  rasp:
+    image: thomasambrogini/rasp:1.4
+    ports:
+      - 8056:8056/udp
+      - 8056:8056/tcp
+    depends_on:
+      - transporttrolley

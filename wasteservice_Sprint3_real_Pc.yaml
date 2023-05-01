@@ -1,0 +1,44 @@
+version: '3'
+services:
+  wenv:
+    image: thomasambrogini/virtualrobot:1.0
+    ports:
+      - 8090:8090 
+      - 8091:8091/tcp
+      - 8091:8091/udp
+  
+  wasteservice:
+    image: thomasambrogini/wasteservice:2.1
+    ports:
+      #- 192.168.1.7:8049:8049/udp
+        #- 192.168.1.7:8049:8049/tcp
+      - 8049:8049/udp
+      - 8049:8049/tcp
+      
+  transporttrolley:
+    image: thomasambrogini/transporttrolley:2.1
+    ports:
+      #- 192.168.1.7:8051:8051/udp
+        #- 192.168.1.7:8051:8051/tcp
+      - 8051:8051/udp
+      - 8051:8051/tcp
+    depends_on:
+      - wasteservice
+  
+  truck_gui:
+    image: thomasambrogini/truck_gui:1.0
+    ports:
+      - 8080:8080
+    depends_on:
+      - wasteservice
+      
+  gui:
+    image: thomasambrogini/gui:2.0
+    extra_hosts:
+     - "rasp:192.168.1.11"
+    ports:
+     - 8085:8085
+    depends_on:
+     - transporttrolley
+     - wasteservice
+     

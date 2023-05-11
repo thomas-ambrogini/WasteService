@@ -15,7 +15,7 @@ services:
       - wenv
 
   wasteservice:
-    image: thomasambrogini/wasteservice:2.0
+    image: thomasambrogini/wasteservice:2.1
     ports:
       #- 192.168.1.7:8049:8049/udp
         #- 192.168.1.7:8049:8049/tcp
@@ -24,27 +24,28 @@ services:
     depends_on:
       - robot
   transporttrolley:
-    image: thomasambrogini/transporttrolley:1.0
-    extra_hosts:
-      - "rasp:192.168.1.11"
+    image: thomasambrogini/transporttrolley:2.4
     ports:
-      - 192.168.1.7:8051:8051/udp
-      - 192.168.1.7:8051:8051/tcp
-        #      - 8051:8051/udp
-        #- 8051:8051/tcp
+      #- 192.168.1.7:8051:8051/udp
+      #- 192.168.1.7:8051:8051/tcp
+      - 8051:8051/udp
+      - 8051:8051/tcp
     depends_on:
       - wasteservice
   
   gui:
     image: thomasambrogini/gui:2.0
     extra_hosts:
-      - "rasp:192.168.1.11"
+      - "rasp:169.254.166.186"
     ports: 
       #      - 192.168.1.7:8085:8085/udp
       #      - 192.168.1.7:8085:8085/tcp
       - 8085:8085
         #      - 192.168.1.7:8085:8085
-  
+    depends_on:
+      - wasteservice
+      - transporttrolley
+
   truck_gui:
     image: thomasambrogini/truck_gui:1.0
     ports:
